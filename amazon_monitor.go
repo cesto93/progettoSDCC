@@ -115,7 +115,7 @@ func cloudwatchMetrics(metricName String, metricId String, stat String, startTim
 
  	//example_s3(bucket, key, timeout)
  	//fmt.Printf("successfully uploaded file to %s/%s\n", bucket, key)
- 	startTime := time.Parse(time.RFC3339, 2019-10-17T12:30:00+02:00)
- 	endTime := time.Parse(time.RFC3339, 2019-10-17T12:40:00+02:00)
- 	cloudwatchMetrics("CPUUtilization", "m1", "Average", startTime, endTime, 300)
+ 	startTime := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
+ 	endTime := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
+ 	cloudwatchMetrics("CPUUtilization", "cpu1", "Average", startTime, endTime, 300)
  }
