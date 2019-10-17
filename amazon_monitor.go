@@ -12,22 +12,98 @@
  	"github.com/aws/aws-sdk-go/aws/request"
  	"github.com/aws/aws-sdk-go/aws/session"
  	"github.com/aws/aws-sdk-go/service/s3"
+ 	"github.com/aws/aws-sdk-go/service/cloudwatch"
  )
 
  const (
 	awsRegion = "us-east-1"
 )
 
- // Uploads a file to S3 given a bucket and object key. Also takes a duration
- // value to terminate the update if it doesn't complete within that time.
- //
- // The AWS Region needs to be provided in the AWS shared config or on the
- // environment variable as `AWS_REGION`. Credentials also must be provided
- // Will default to shared config file, but can load from environment if provided.
- //
  // Usage:
  //   # Upload myfile.txt to myBucket/myKey. Must complete within 10 minutes or will fail
  //   go run withContext.go -b mybucket -k myKey -d 10m < myfile.txt
+func example_s3(bucket string, key string, timeout time.Duration) {
+	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
+ 	svc := s3.New(sess)
+
+ 	// Create a context with a timeout that will abort the upload if it takes more than the passed in timeout.
+ 	ctx := context.Background()
+ 	var cancelFn func()
+ 	if timeout > 0 {
+ 		ctx, cancelFn = context.WithTimeout(ctx, timeout)
+ 	}
+ 	
+ 	defer cancelFn() // Ensure the context is canceled to prevent leaking.
+
+ 	// Uploads the object to S3. The Context will interrupt the request if the timeout expires.
+ 	_, err := svc.PutObjectWithContext(ctx, &s3.PutObjectInput{
+ 		Bucket: aws.String(bucket),
+ 		Key:    aws.String(key),
+ 		Body:   os.Stdin,
+ 	})
+ 	if err != nil {
+ 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == request.CanceledErrorCode {
+ 			fmt.Fprintf(os.Stderr, "upload canceled due to timeout, %v\n", err)
+ 		} else {
+ 			fmt.Fprintf(os.Stderr, "failed to upload object, %v\n", err)
+ 		}
+ 		os.Exit(1)
+ 	}
+}
+
+func cloudwatchMetrics(metricName String, metricId String, stat String, startTime time, endTime time, period int64) {
+	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
+ 	svc := cloudwatch.New(sess)
+
+ 	//endTime := time.Now()
+	//duration, _ := time.ParseDuration("-5m")
+	//startTime := endTime.Add(duration)
+	//metricname := "ClusterUsedSpace"
+	//metricid := "m1"
+	//period := int64(60)
+	//stat := "Average"
+	namespace := "AWS/EC2"
+	metricDimName := "InstanceId"
+	metricDimValue := "i-0706dcb2c513b981c"
+
+	query := &cloudwatch.MetricDataQuery{
+		Id: &metricid,
+		MetricStat: &cloudwatch.MetricStat{
+			Metric: &cloudwatch.Metric{
+				Namespace:  &namespace,
+				MetricName: &metricname,
+				Dimensions: []*cloudwatch.Dimension{
+					&cloudwatch.Dimension{
+						Name:  &metricDimName,
+						Value: &metricDimValue,
+					},
+				},
+			},
+			Period: &period,
+			Stat:   &stat,
+		},
+	}
+
+	resp, err := svc.GetMetricData(&cloudwatch.GetMetricDataInput{
+		EndTime:           &endTime,
+		StartTime:         &startTime,
+		MetricDataQueries: []*cloudwatch.MetricDataQuery{query},
+	})
+
+	if err != nil {
+		fmt.Println("Got error getting metric data")
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	for _, metricdata := range resp.MetricDataResults {
+		fmt.Println(*metricdata.Id)
+		for index, _ := range metricdata.Timestamps {
+			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
+		}
+	}
+}
+
  func main() {
  	var bucket, key string
  	var timeout time.Duration
@@ -37,47 +113,9 @@
  	flag.DurationVar(&timeout, "d", 0, "Upload timeout.")
  	flag.Parse()
 
- 	// All clients require a Session. The Session provides the client with
-	// shared configuration such as region, endpoint, and credentials. A
-	// Session should be shared where possible to take advantage of
-	// configuration and credential caching. See the session package for
-	// more information.
- 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
-
-	// Create a new instance of the service's client with a Session.
-	// Optional aws.Config values can also be provided as variadic arguments
-	// to the New function. This option allows you to provide service
-	// specific configuration.
- 	svc := s3.New(sess)
-
- 	// Create a context with a timeout that will abort the upload if it takes
- 	// more than the passed in timeout.
- 	ctx := context.Background()
- 	var cancelFn func()
- 	if timeout > 0 {
- 		ctx, cancelFn = context.WithTimeout(ctx, timeout)
- 	}
- 	// Ensure the context is canceled to prevent leaking.
- 	// See context package for more information, https://golang.org/pkg/context/
- 	defer cancelFn()
-
- 	// Uploads the object to S3. The Context will interrupt the request if the
- 	// timeout expires.
- 	_, err := svc.PutObjectWithContext(ctx, &s3.PutObjectInput{
- 		Bucket: aws.String(bucket),
- 		Key:    aws.String(key),
- 		Body:   os.Stdin,
- 	})
- 	if err != nil {
- 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == request.CanceledErrorCode {
- 			// If the SDK can determine the request or retry delay was canceled
- 			// by a context the CanceledErrorCode error code will be returned.
- 			fmt.Fprintf(os.Stderr, "upload canceled due to timeout, %v\n", err)
- 		} else {
- 			fmt.Fprintf(os.Stderr, "failed to upload object, %v\n", err)
- 		}
- 		os.Exit(1)
- 	}
-
- 	fmt.Printf("successfully uploaded file to %s/%s\n", bucket, key)
+ 	//example_s3(bucket, key, timeout)
+ 	//fmt.Printf("successfully uploaded file to %s/%s\n", bucket, key)
+ 	startTime := time.Parse(time.RFC3339, 2019-10-17T12:30:00+02:00)
+ 	endTime := time.Parse(time.RFC3339, 2019-10-17T12:40:00+02:00)
+ 	cloudwatchMetrics("CPUUtilization", "m1", "Average", startTime, endTime, 300)
  }
