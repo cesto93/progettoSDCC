@@ -51,7 +51,7 @@ func example_s3(bucket string, key string, timeout time.Duration) {
  	}
 }
 
-func cloudwatchMetrics(metricName String, metricId String, stat String, startTime time, endTime time, period int64) {
+func cloudwatchMetrics(metricName string, metricId string, stat string, startTime Time, endTime Time, period int64) {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := cloudwatch.New(sess)
 
