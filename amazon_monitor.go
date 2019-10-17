@@ -67,11 +67,11 @@ func cloudwatchMetrics(metricName string, metricId string, stat string, startTim
 	metricDimValue := "i-0706dcb2c513b981c"
 
 	query := &cloudwatch.MetricDataQuery{
-		Id: &metricid,
+		Id: &metricId,
 		MetricStat: &cloudwatch.MetricStat{
 			Metric: &cloudwatch.Metric{
 				Namespace:  &namespace,
-				MetricName: &metricname,
+				MetricName: &metricName,
 				Dimensions: []*cloudwatch.Dimension{
 					&cloudwatch.Dimension{
 						Name:  &metricDimName,
@@ -115,7 +115,7 @@ func cloudwatchMetrics(metricName string, metricId string, stat string, startTim
 
  	//example_s3(bucket, key, timeout)
  	//fmt.Printf("successfully uploaded file to %s/%s\n", bucket, key)
- 	startTime := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
- 	endTime := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
+ 	startTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
+ 	endTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
  	cloudwatchMetrics("CPUUtilization", "cpu1", "Average", startTime, endTime, 300)
  }
