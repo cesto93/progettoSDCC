@@ -19,9 +19,7 @@
 	awsRegion = "us-east-1"
 )
 
- // Usage:
  //   # Upload myfile.txt to myBucket/myKey. Must complete within 10 minutes or will fail
- //   go run withContext.go -b mybucket -k myKey -d 10m < myfile.txt
 func example_s3(bucket string, key string, timeout time.Duration) {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := s3.New(sess)
@@ -35,7 +33,6 @@ func example_s3(bucket string, key string, timeout time.Duration) {
  	
  	defer cancelFn() // Ensure the context is canceled to prevent leaking.
 
- 	// Uploads the object to S3. The Context will interrupt the request if the timeout expires.
  	_, err := svc.PutObjectWithContext(ctx, &s3.PutObjectInput{
  		Bucket: aws.String(bucket),
  		Key:    aws.String(key),
@@ -51,17 +48,14 @@ func example_s3(bucket string, key string, timeout time.Duration) {
  	}
 }
 
-func cloudwatchMetrics(metricName string, metricId string, stat string, startTime time.Time, endTime time.Time, period int64) {
+func cloudwatchMetrics(metricName string, metricId string, stat string, startTime time.Time, endTime time.Time, 
+						period int64) MetricDataResults[] {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := cloudwatch.New(sess)
 
  	//endTime := time.Now()
 	//duration, _ := time.ParseDuration("-5m")
 	//startTime := endTime.Add(duration)
-	//metricname := "ClusterUsedSpace"
-	//metricid := "m1"
-	//period := int64(60)
-	//stat := "Average"
 	namespace := "AWS/EC2"
 	metricDimName := "InstanceId"
 	metricDimValue := "i-0706dcb2c513b981c"
@@ -96,26 +90,23 @@ func cloudwatchMetrics(metricName string, metricId string, stat string, startTim
 		os.Exit(1)
 	}
 
-	for _, metricdata := range resp.MetricDataResults {
+	return resp.MetricDataResults;
+	/*for _, metricdata := range resp.MetricDataResults {
 		fmt.Println(*metricdata.Id)
 		for index, _ := range metricdata.Timestamps {
 			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
 		}
-	}
+	}*/
 }
 
  func main() {
- 	var bucket, key string
- 	var timeout time.Duration
-
- 	flag.StringVar(&bucket, "b", "", "Bucket name.")
- 	flag.StringVar(&key, "k", "", "Object key name.")
- 	flag.DurationVar(&timeout, "d", 0, "Upload timeout.")
- 	flag.Parse()
-
- 	//example_s3(bucket, key, timeout)
- 	//fmt.Printf("successfully uploaded file to %s/%s\n", bucket, key)
  	startTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
  	endTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
- 	cloudwatchMetrics("CPUUtilization", "cpu1", "Average", startTime, endTime, 300)
+ 	results := cloudwatchMetrics("CPUUtilization", "cpu1", "Average", startTime, endTime, 300)
+ 	for _, metricdata := range results {
+		fmt.Println(*metricdata.Id)
+		for index, _ := range metricdata.Timestamps {
+			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
+		}
+	}	
  }
