@@ -97,7 +97,7 @@ func cloudwatchEC2Metrics(metricName string, instanceIds []string, metricId stri
  func main() {
  	startTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
  	endTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
- 	instanceIds := [1]string{"i-0706dcb2c513b981c"}
+ 	instanceIds := []string{"i-0706dcb2c513b981c"}
  	results := cloudwatchEC2Metrics("CPUUtilization", instanceIds, "cpu1", "Average", startTime, endTime, 300)
  	for _, metricdata := range results {
 		fmt.Println(*metricdata.Id)
