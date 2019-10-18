@@ -2,7 +2,7 @@
 
  import (
  	"context"
- 	"flag"
+ 	//"flag"
  	"fmt"
  	"os"
  	"time"
@@ -49,7 +49,7 @@ func example_s3(bucket string, key string, timeout time.Duration) {
 }
 
 func cloudwatchMetrics(metricName string, metricId string, stat string, startTime time.Time, endTime time.Time, 
-						period int64) []MetricDataResults {
+						period int64) []MetricDataResult {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := cloudwatch.New(sess)
 
