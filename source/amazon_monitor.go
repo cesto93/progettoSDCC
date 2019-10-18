@@ -61,7 +61,7 @@ func cloudwatchEC2Metrics(metricName string, instanceIds []string, metricId stri
 	//metricDimValue := "i-0706dcb2c513b981c"
 
 	dimensions := make([]*cloudwatch.Dimension, len(instanceIds))
-	for i, _ := range instanceIds {
+	for i := 0; i < len(instanceIds); i++ {
 		dimensions[i].Name = &metricDimName
 		dimensions[i].Value = &instanceIds[i]
 	}
