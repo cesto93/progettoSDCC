@@ -73,7 +73,6 @@ func cloudwatchEC2Metrics(metricName string, instanceIds []string, metricId stri
 				Namespace:  &namespace,
 				MetricName: &metricName,
 				Dimensions: &dimensions,
-				},
 			},
 			Period: &period,
 			Stat:   &stat,
