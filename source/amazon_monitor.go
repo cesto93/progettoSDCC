@@ -62,8 +62,10 @@ func cloudwatchEC2Metrics(metricName string, instanceIds []string, metricId stri
 
 	dimensions := make([]*cloudwatch.Dimension, len(instanceIds))
 	for i := 0; i < len(instanceIds); i++ {
-		dimensions[i].Name = &metricDimName
-		dimensions[i].Value = &instanceIds[i]
+		dimensions[i] = &cloudwatch.Dimension{ 
+			Name : &metricDimName
+			Value : &instanceIds[i]
+		}
 	}
 
 	query := &cloudwatch.MetricDataQuery{
