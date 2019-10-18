@@ -48,7 +48,7 @@ func example_s3(bucket string, key string, timeout time.Duration) {
  	}
 }
 
-func cloudwatchMetrics(metricName string, metricId string, stat string, startTime time.Time, endTime time.Time, 
+func cloudwatchEC2Metrics(metricName string, instanceIds []string, metricId string, stat string, startTime time.Time, endTime time.Time, 
 						period int64) []*cloudwatch.MetricDataResult {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := cloudwatch.New(sess)
@@ -58,7 +58,13 @@ func cloudwatchMetrics(metricName string, metricId string, stat string, startTim
 	//startTime := endTime.Add(duration)
 	namespace := "AWS/EC2"
 	metricDimName := "InstanceId"
-	metricDimValue := "i-0706dcb2c513b981c"
+	//metricDimValue := "i-0706dcb2c513b981c"
+
+	var dimensions [len(instanceIds)]*cloudwatch.Dimension
+	for i, _ := range instanceIds {
+		dimensions[i].Name = metricDimName
+		dimensions[i].Value = instanceIds[i]
+	}
 
 	query := &cloudwatch.MetricDataQuery{
 		Id: &metricId,
@@ -66,11 +72,7 @@ func cloudwatchMetrics(metricName string, metricId string, stat string, startTim
 			Metric: &cloudwatch.Metric{
 				Namespace:  &namespace,
 				MetricName: &metricName,
-				Dimensions: []*cloudwatch.Dimension{
-					&cloudwatch.Dimension{
-						Name:  &metricDimName,
-						Value: &metricDimValue,
-					},
+				Dimensions: &dimensions,
 				},
 			},
 			Period: &period,
@@ -91,18 +93,12 @@ func cloudwatchMetrics(metricName string, metricId string, stat string, startTim
 	}
 
 	return resp.MetricDataResults;
-	/*for _, metricdata := range resp.MetricDataResults {
-		fmt.Println(*metricdata.Id)
-		for index, _ := range metricdata.Timestamps {
-			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
-		}
-	}*/
 }
 
  func main() {
  	startTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
  	endTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
- 	results := cloudwatchMetrics("CPUUtilization", "cpu1", "Average", startTime, endTime, 300)
+ 	results := cloudwatchEC2Metrics("CPUUtilization", "i-0706dcb2c513b981c", "cpu1", "Average", startTime, endTime, 300)
  	for _, metricdata := range results {
 		fmt.Println(*metricdata.Id)
 		for index, _ := range metricdata.Timestamps {
