@@ -2,7 +2,6 @@
 
  import (
  	"context"
- 	//"flag"
  	"fmt"
  	"os"
  	"time"
@@ -23,16 +22,12 @@
 func example_s3(bucket string, key string, timeout time.Duration) {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := s3.New(sess)
-
- 	// Create a context with a timeout that will abort the upload if it takes more than the passed in timeout.
  	ctx := context.Background()
  	var cancelFn func()
  	if timeout > 0 {
  		ctx, cancelFn = context.WithTimeout(ctx, timeout)
  	}
- 	
  	defer cancelFn() // Ensure the context is canceled to prevent leaking.
-
  	_, err := svc.PutObjectWithContext(ctx, &s3.PutObjectInput{
  		Bucket: aws.String(bucket),
  		Key:    aws.String(key),
@@ -48,8 +43,8 @@ func example_s3(bucket string, key string, timeout time.Duration) {
  	}
 }
 
-func cloudwatchEC2Metrics(metricName string, instanceIds []string, metricId string, stat string, startTime time.Time, endTime time.Time, 
-						period int64) []*cloudwatch.MetricDataResult {
+func cloudwatchEC2Metric(metricName string, instanceIds []string, metricId string, stat string, startTime time.Time, endTime time.Time, 
+							period int64) []*cloudwatch.MetricDataResult {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := cloudwatch.New(sess)
 
@@ -58,7 +53,6 @@ func cloudwatchEC2Metrics(metricName string, instanceIds []string, metricId stri
 	//startTime := endTime.Add(duration)
 	namespace := "AWS/EC2"
 	metricDimName := "InstanceId"
-	//metricDimValue := "i-0706dcb2c513b981c"
 
 	dimensions := make([]*cloudwatch.Dimension, len(instanceIds))
 	for i := 0; i < len(instanceIds); i++ {
@@ -92,19 +86,34 @@ func cloudwatchEC2Metrics(metricName string, instanceIds []string, metricId stri
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-
 	return resp.MetricDataResults;
+}
+
+func cloudwatchEC2Metrics(instanceIds []string, stat string, startTime time.Time, endTime time.Time, period int64) {
+	metricNames := []string{"CPUCreditUsage", "CPUCreditBalance", "CPUSurplusCreditBalance", "CPUSurplusCreditsCharged", 
+	"NetworkPacketsIn", "NetworkPacketsOut", "CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadBytes", "DiskWriteBytes", 
+	"DiskReadOps", "DiskWriteOps", "StatusCheckFailed_System", "StatusCheckFailed_Instance", "StatusCheckFailed"}
+
+	for _,metric range metricNames {
+		results := cloudwatchEC2Metric(metric, instanceIds, metric, "Average", startTime, endTime, 300)
+		for index, _ := range metricdata.Timestamps {
+			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
+		}
+	} 
 }
 
  func main() {
  	startTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
  	endTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
  	instanceIds := []string{"i-0706dcb2c513b981c"}
- 	results := cloudwatchEC2Metrics("CPUUtilization", instanceIds, "cpu1", "Average", startTime, endTime, 300)
+
+ 	/*results := cloudwatchEC2Metric("CPUUtilization", instanceIds, "cpu1", "Average", startTime, endTime, 300)
  	for _, metricdata := range results {
 		fmt.Println(*metricdata.Id)
 		for index, _ := range metricdata.Timestamps {
 			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
 		}
-	}	
+	}*/
+
+	cloudwatchEC2Metrics(instanceIds, "Average", startTime, endTime, 300)	
  }
