@@ -98,12 +98,12 @@ func cloudwatchEC2Metrics(instanceIds []string, stat string, startTime time.Time
 	"netpackin", "netpackout", "cpuutil", "networkin", "networkout", "diskreadbytes", "diskwritebytes", 
 	"diskreadops", "diskwriteops", "statuscheckfailed_system", "statuscheckfailed_instance", "statuscheckfailed"}
 
-	for _, metricName := range metricNames {
-		results := cloudwatchEC2Metric(metricName, instanceIds, metricIds, "Average", startTime, endTime, 300)
+	for i, _ := range metricNames {
+		results := cloudwatchEC2Metric(metricNames[i], instanceIds, metricIds[i], "Average", startTime, endTime, 300)
 		for _, metricdata := range results {
 		fmt.Println(*metricdata.Id)
-		for index, _ := range metricdata.Timestamps {
-			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
+		for j, _ := range metricdata.Timestamps {
+			fmt.Printf("%v %v\n", (*metricdata.Timestamps[j]).String(), *metricdata.Values[j])
 			}
 		}
 	} 
