@@ -91,7 +91,7 @@ func cloudwatchEC2Metric(metricName string, instanceIds []string, metricId strin
 
 func cloudwatchEC2Metrics(instanceIds []string, stat string, startTime time.Time, endTime time.Time, period int64) {
 	metricNames := []string{/*"CPUCreditUsage", "CPUCreditBalance", "CPUSurplusCreditBalance", "CPUSurplusCreditsCharged",*/ 
-	"NetworkPacketsIn", "NetworkPacketsOut", "CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadBytes", "DiskWriteBytes", 
+	/*"NetworkPacketsIn", "NetworkPacketsOut",*/ "CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadBytes", "DiskWriteBytes", 
 	"DiskReadOps", "DiskWriteOps", "StatusCheckFailed_System", "StatusCheckFailed_Instance", "StatusCheckFailed"}
 
 	for _, metricName := range metricNames {
