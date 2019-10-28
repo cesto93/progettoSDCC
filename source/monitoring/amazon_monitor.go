@@ -122,5 +122,5 @@ func cloudwatchEC2Metrics(instanceIds []string, stat string, startTime time.Time
 		}
 	}*/
 
-	cloudwatchEC2Metrics(instanceIds, "Average", startTime, endTime, 300)	
+	cloudwatchEC2Metrics(instanceIds, "Average", startTime, endTime, 60)	
  }
