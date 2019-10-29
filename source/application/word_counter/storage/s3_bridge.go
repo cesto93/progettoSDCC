@@ -44,7 +44,7 @@ func (bridge *S3Bridge) read(key string) ([]byte, error) {
 	return buffer.Bytes(), nil;
 }
 
-func (bridge *S3Bridge) write(key string, data []bytes) error {
+func (bridge *S3Bridge) write(key string, data []byte) error {
 	result, err := bridge.uploader.Upload(&s3manager.UploadInput{
     	Bucket: aws.String(bridge.bucketName),
     	Key:    aws.String(key),
