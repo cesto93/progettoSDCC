@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"bytes"
 
 	"github.com/aws/aws-sdk-go/aws"
  	"github.com/aws/aws-sdk-go/aws/session"
@@ -23,15 +24,15 @@ type BridgeStorage interface {
 	write(key string, data []bytes)
 }
 
-func New(string bucketName) S3Bridge {
+func New(bucketName string) S3Bridge {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	uploader := s3manager.NewUploader(sess)
  	downloader := s3manager.NewDownloader(sess)
- 	out := S3Bridge{ bucketName, uploader, downloader}
+ 	out := S3Bridge{bucketName, uploader, downloader}
  	return out
 }
 
-func (bridge *S3Bridge) read(key string) []byte {
+func (bridge *S3Bridge) read(key string) ([]byte, error) {
 	buffer := aws.NewWriteAtBuffer([]byte{})
 	_, err := bridge.downloader.Download(buffer, &s3.GetObjectInput{
     	Bucket: aws.String(bridge.bucketName),
@@ -43,10 +44,10 @@ func (bridge *S3Bridge) read(key string) []byte {
 	return buffer.Bytes();
 }
 
-func (bridge *S3Bridge) write(key string, data []bytes) {
-	result, err := uploader.Upload(&s3manager.UploadInput{
+func (bridge *S3Bridge) write(key string, data []bytes) error {
+	result, err := bridge.uploader.Upload(&s3manager.UploadInput{
     	Bucket: aws.String(bridge.bucketName),
-    	Key:    aws.String(string),
+    	Key:    aws.String(key),
     	Body:   data,
 	})
 	if err != nil {
