@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
-	"word_counter/rpc_worker"
+	"progettoSDCC/source/application/word_counter/rpc_worker"
 )
 
 func serv_rpc(port string) {

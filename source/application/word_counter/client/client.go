@@ -3,7 +3,7 @@ package client
 import (
 	/*"os"
 	"fmt"*/
-	"word_counter/storage"
+	"progettoSDCC/source/application/word_counter/storage"
 )
 
 const(

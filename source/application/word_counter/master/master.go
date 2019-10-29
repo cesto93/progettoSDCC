@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/rpc"
 	"os"
-	"word_counter/rpc_worker"
+	"progettoSDCC/source/application/word_counter/rpc_worker"
 )
 
 func import_json(path string, pointer interface{}) {
