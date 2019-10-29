@@ -21,7 +21,7 @@ type S3Bridge struct {
 
 type BridgeStorage interface {
 	read(key string) []byte
-	write(key string, data []bytes)
+	write(key string, data []byte)
 }
 
 func New(bucketName string) S3Bridge {
@@ -39,9 +39,9 @@ func (bridge *S3Bridge) read(key string) ([]byte, error) {
    		Key:    aws.String(key),
 	})
 	if err != nil {
-    	return fmt.Errorf("failed to download file, %v", err)
+    	return nil, fmt.Errorf("failed to download file, %v", err)
 	}
-	return buffer.Bytes();
+	return buffer.Bytes(), nil;
 }
 
 func (bridge *S3Bridge) write(key string, data []bytes) error {
@@ -53,4 +53,5 @@ func (bridge *S3Bridge) write(key string, data []bytes) error {
 	if err != nil {
     	return fmt.Errorf("failed to upload file, %v", err)
 	}
+	return nil
 }
