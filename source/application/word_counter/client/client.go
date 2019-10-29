@@ -17,7 +17,7 @@ func putWordsToServer(names []string, paths []string){
 		if err != nil {
 			fmt.Println("File reading error", err)
 		}
-		s.Write(names[i], string(file))
+		s.Write(names[i], byte(file))
 	}
 }
 
