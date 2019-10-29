@@ -1,8 +1,8 @@
 package client
 
 import (
-	/*"os"
-	"fmt"*/
+	"fmt"
+	"io/ioutil"
 	"progettoSDCC/source/application/word_counter/storage"
 )
 
@@ -16,7 +16,6 @@ func putWordsToServer(names []string, paths []string){
 		file, err := ioutil.ReadFile(paths[i])
 		if err != nil {
 			fmt.Println("File reading error", err)
-			return nil
 		}
 		s.write(names[i], string(file))
 	}
