@@ -22,7 +22,7 @@ type S3Bridge struct {
 }
 
 type BridgeStorage interface {
-	read(key string) []byte{}
+	read(key string) []byte
 	write(key string, data []bytes)
 }
 
@@ -34,7 +34,7 @@ func New(string bucketName) S3Bridge {
  	return out
 }
 
-func (bridge *S3Bridge) read(key string) []byte{} {
+func (bridge *S3Bridge) read(key string) []byte {
 	buffer := aws.NewWriteAtBuffer([]byte{})
 	_, err := bridge.downloader.Download(buffer, &s3.GetObjectInput{
     	Bucket: aws.String(bridge.bucketName),
