@@ -48,7 +48,7 @@ func (bridge *S3Bridge) write(key string, data []byte) error {
 	result, err := bridge.uploader.Upload(&s3manager.UploadInput{
     	Bucket: aws.String(bridge.bucketName),
     	Key:    aws.String(key),
-    	Body:   data,
+    	Body:   bytes.NewReader(data),
 	})
 	if err != nil {
     	return fmt.Errorf("failed to upload file, %v", err)
