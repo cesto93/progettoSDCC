@@ -1,0 +1,3 @@
+#ignore executable files
+/source/application/word_counter/worker/worker
+/source/application/word_counter/master/master
