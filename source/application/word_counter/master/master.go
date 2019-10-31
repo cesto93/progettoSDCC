@@ -9,6 +9,11 @@ import (
 	"flag"
 	"progettoSDCC/source/application/word_counter/rpc_worker"
 	"progettoSDCC/source/application/word_counter/utility"
+	"progettoSDCC/source/application/word_counter/storage"
+)
+
+const(
+	bucketName = "cesto93"
 )
 
 func import_json(path string, pointer interface{}) {
@@ -32,6 +37,20 @@ func read_wordfiles(paths []string) []string {
 			return nil
 		}
 		texts = append(texts, string(file))
+	}
+	return texts
+}
+
+func read_wordfiles_fromS3(keys []string) []string {
+	var texts []string
+	s := storage.New(bucketName)
+	for _,key := range keys {
+		data,err := s.Read(key)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		texts = append(texts, string(data))
 	}
 	return texts
 }
@@ -116,16 +135,24 @@ func main() {
 
 	var nodes rpc_worker.NodeList
 	var word_files utility.ArrayFlags
+	var localStorage bool
+	var s []string
 
 	flag.Var(&word_files, "files", "The file to request.")
-	flag.Var(&nodes, "ports", "the list of worker with it's rpc coordinate")
+	flag.Var(&nodes, "ports", "The list of worker with it's rpc coordinate")
+	flag.BoolVar(&localStorage, "local-storage", false, "If the storage  of the file is local")
 	flag.Parse()
 
-	s := read_wordfiles(word_files)
+	if (localStorage) {
+		s = read_wordfiles(word_files)
+	} else {
+		s = read_wordfiles_fromS3(word_files)
+	}
 
 	for i := range nodes {
 		call_load_topology_on_worker(nodes, nodes[i])
 	}
+
 	call_map_on_workers(s, nodes) //End of this function means Map is done on all nodes
 
 	call_barrier_on_workers(nodes) //End of this function means results are ready
