@@ -6,8 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/rpc"
-	"os"
+	"flag"
 	"progettoSDCC/source/application/word_counter/rpc_worker"
+	"progettoSDCC/source/application/word_counter/utility"
 )
 
 func import_json(path string, pointer interface{}) {
@@ -39,7 +40,7 @@ func read_wordfiles(paths []string) []string {
 func call_map_on_workers(texts []string, nodes []rpc_worker.Node) {
 	rpc_chan := make(chan *rpc.Call, len(nodes))
 	for i := range texts {
-		client, err := rpc.DialHTTP("tcp", "localhost:"+nodes[i % len(nodes)].Port)
+		client, err := rpc.DialHTTP("tcp", nodes[i % len(nodes)].Address + ":" + nodes[i % len(nodes)].Port)
 		if err != nil {
 			log.Fatal("Error in dialing: ", err)
 		}
@@ -59,7 +60,7 @@ func call_barrier_on_workers(nodes []rpc_worker.Node) {
 
 	rpc_chan := make(chan *rpc.Call, len(nodes))
 	for i := range nodes {
-		client, err := rpc.DialHTTP("tcp", "localhost:"+nodes[i].Port)
+		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
 		if err != nil {
 			log.Fatal("Error in dialing: ", err)
 		}
@@ -76,13 +77,13 @@ func call_barrier_on_workers(nodes []rpc_worker.Node) {
 }
 
 //SYNC
-func call_load_topology_on_worker(list_of_nodes []rpc_worker.Node, port string) {
-	client, err := rpc.DialHTTP("tcp", "localhost:"+port)
+func call_load_topology_on_worker(topology []rpc_worker.Node, node rpc_worker.Node) {
+	client, err := rpc.DialHTTP("tcp", node.Address + ":" + node.Port)
 	if err != nil {
 		log.Fatal("Error in dialing: ", err)
 	}
 	defer client.Close()
-	err = client.Call("Worker.Load_Topology", list_of_nodes, nil)
+	err = client.Call("Worker.Load_Topology", topology, nil)
 	if err != nil {
 		log.Fatal("Error in rpc_Map: ", err)
 	}
@@ -92,7 +93,7 @@ func call_load_topology_on_worker(list_of_nodes []rpc_worker.Node, port string) 
 func get_results_on_workers(nodes []rpc_worker.Node) []rpc_worker.Word_count {
 	var res []rpc_worker.Word_count
 	for i := range nodes {
-		client, err := rpc.DialHTTP("tcp", "localhost:"+nodes[i].Port)
+		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
 		if err != nil {
 			log.Fatal("Error in dialing: ", err)
 		}
@@ -112,25 +113,18 @@ func get_results_on_workers(nodes []rpc_worker.Node) []rpc_worker.Word_count {
 }
 
 func main() {
-	var word_files_list, workers_list string
-	if len(os.Args) != 3 { //Parameter not inserted using default parameter
-		//fmt.Println("Parameter not inserted using default parameter")
-		word_files_list = "../word_files.json" 
-		workers_list = "../workers.json"
-	} else {
-		word_files_list = os.Args[1] //the list of file to read
-		workers_list = os.Args[2]    //the list of worker with it's rpc coordinate
-	}	
 
-	var nodes []rpc_worker.Node
-	var word_files []string
-	import_json(workers_list, &nodes)
-	import_json(word_files_list, &word_files)
+	var nodes rpc_worker.NodeList
+	var word_files utility.ArrayFlags
+
+	flag.Var(&word_files, "files", "The file to request.")
+	flag.Var(&nodes, "ports", "the list of worker with it's rpc coordinate")
+	flag.Parse()
 
 	s := read_wordfiles(word_files)
 
 	for i := range nodes {
-		call_load_topology_on_worker(nodes, nodes[i].Port)
+		call_load_topology_on_worker(nodes, nodes[i])
 	}
 	call_map_on_workers(s, nodes) //End of this function means Map is done on all nodes
 

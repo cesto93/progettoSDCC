@@ -19,8 +19,8 @@ type S3Bridge struct {
 }
 
 type BridgeStorage interface {
-	Read(key string) []byte
-	Write(key string, data []byte)
+	Read(key string) ([]byte, error)
+	Write(key string, data []byte) error
 }
 
 func New(bucketName string) S3Bridge {

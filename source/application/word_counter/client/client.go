@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"flag"
+	"progettoSDCC/source/application/word_counter/utility"
 	"progettoSDCC/source/application/word_counter/storage"
 )
 
@@ -17,14 +19,28 @@ func putWordsToServer(names []string, paths []string){
 		if err != nil {
 			fmt.Println("File reading error", err)
 		}
-		s.Write(names[i], []byte(file))
+		err = s.Write(names[i], []byte(file))
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
-}
-
-func removeWordsFromServer(paths []string){
-	//TODO
 }
 
 /*func requestWordCount(paths []string) []string{
 
 }*/
+
+func removeWordsFromServer(paths []string){
+	//TODO
+}
+
+func main(){
+	var names, paths utility.ArrayFlags
+	flag.Var(&names, "n", "Name of file to upload.")
+	flag.Var(&paths, "p", "Path of file to upload.")
+	flag.Parse()
+	if(len(names) != len(paths)){
+		fmt.Println("Error, paths and names must have same dimension")
+	}
+	putWordsToServer(names, paths)
+}

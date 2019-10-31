@@ -9,7 +9,7 @@ import (
 )
 
 type Node struct {
-	Id   int
+	Address string
 	Port string
 }
 
@@ -89,7 +89,7 @@ func call_reduce(words []Word_count, nodes []Node) {
 	words_by_reducer := shaffle_and_sort(words, len(nodes))
 	rpc_chan := make(chan *rpc.Call, len(nodes))
 	for i := range nodes {
-		client, err := rpc.DialHTTP("tcp", "localhost:"+nodes[i].Port)
+		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
 		if err != nil {
 			log.Fatal("Error in dialing: ", err)
 		}

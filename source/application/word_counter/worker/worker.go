@@ -20,7 +20,7 @@ func serv_rpc(port string) {
 	server.HandleHTTP("/", "/debug")
 
 	// Listen for incoming messages on port
-	l, e := net.Listen("tcp", ":"+port)
+	l, e := net.Listen("tcp", ":" + port)
 	if e != nil {
 		log.Fatal("Listen error: ", e)
 	}
