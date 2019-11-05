@@ -131,6 +131,10 @@ func get_results_on_workers(nodes []rpc_worker.Node) []rpc_worker.Word_count {
 	return res
 }
 
+func serv_rpc(){
+	//TODO implement main logic inside of this and serv client.go
+}
+
 func main() {
 
 	var nodes rpc_worker.NodeList

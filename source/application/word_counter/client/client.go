@@ -27,7 +27,7 @@ func putWordsToServer(names []string, paths []string){
 }
 
 /*func requestWordCount(paths []string) []string{
-
+	//TODO implemnt call to servRPC in master.go
 }*/
 
 func removeWordsFromServer(paths []string){
