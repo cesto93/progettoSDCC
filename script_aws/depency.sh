@@ -23,5 +23,6 @@ sudo yum install git -y
 sudo yum install -y golang
 go get -u github.com/aws/aws-sdk-go
 "
+#git clone https://github.com/cesto93/progettoSDCC
 
 done
