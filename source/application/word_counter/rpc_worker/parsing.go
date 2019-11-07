@@ -22,3 +22,13 @@ func (i *NodeList) Set(value string) error {
 	}
 	return nil
 }
+
+func (i *Node) String() string {
+    return "my node representation"
+}
+
+func (i *Node) Set(value string) error {
+	data := strings.Split(value, ":")
+	*i = Node{data[0], data[1]}
+	return nil
+}

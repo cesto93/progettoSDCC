@@ -6,15 +6,20 @@ import (
 	"io/ioutil"
 	"log"
 	"net/rpc"
+	"net"
+	"net/http"
 	"flag"
 	"progettoSDCC/source/application/word_counter/rpc_worker"
-	"progettoSDCC/source/application/word_counter/utility"
 	"progettoSDCC/source/application/word_counter/storage"
 )
 
 const(
 	bucketName = "cesto93"
 )
+
+type Master int
+
+var nodes rpc_worker.NodeList
 
 func import_json(path string, pointer interface{}) {
 	file_json, err := ioutil.ReadFile(path)
@@ -109,15 +114,15 @@ func call_load_topology_on_worker(topology []rpc_worker.Node, node rpc_worker.No
 }
 
 //SYNC
-func get_results_on_workers(nodes []rpc_worker.Node) []rpc_worker.Word_count {
-	var res []rpc_worker.Word_count
+func get_results_on_workers(nodes []rpc_worker.Node) []rpc_worker.WordCount {
+	var res []rpc_worker.WordCount
 	for i := range nodes {
 		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
 		if err != nil {
 			log.Fatal("Error in dialing: ", err)
 		}
 		defer client.Close()
-		var counted []rpc_worker.Word_count
+		var counted []rpc_worker.WordCount
 		state := true
 		err = client.Call("Worker.Get_Results", state, &counted)
 		if err != nil {
@@ -131,29 +136,69 @@ func get_results_on_workers(nodes []rpc_worker.Node) []rpc_worker.Word_count {
 	return res
 }
 
-func serv_rpc(){
-	//TODO implement main logic inside of this and serv client.go
+func (t *Master) DoWordCount(word_files []string, res *[]rpc_worker.WordCount) error{
+	fmt.Println("Request received")
+
+	s := read_wordfiles_fromS3(word_files)
+
+	for i := range nodes {
+		call_load_topology_on_worker(nodes, nodes[i])
+	}
+
+	call_map_on_workers(s, nodes) //End of this function means Map is done on all nodes
+
+	call_barrier_on_workers(nodes) //End of this function means results are ready
+
+	*res = get_results_on_workers(nodes)
+	return nil
+}
+
+func serv_rpc(port string) {
+	master := new(Master)
+	server := rpc.NewServer()
+	err := server.RegisterName("Master", master)
+	if err != nil {
+		log.Fatal("Format of service rpc is not correct: ", err)
+	}
+	// Register an HTTP handler for RPC messages on rpcPath, and a debugging handler on debugPath
+	server.HandleHTTP("/", "/debug")
+
+	// Listen for incoming messages on port
+	l, e := net.Listen("tcp", ":" + port)
+	if e != nil {
+		log.Fatal("Listen error: ", e)
+	}
+
+	// Start go's http server on socket specified by l
+	err = http.Serve(l, nil)
+	if err != nil {
+		log.Fatal("Serve error: ", err)
+	}
 }
 
 func main() {
 
-	var nodes rpc_worker.NodeList
+	/*var nodes rpc_worker.NodeList
 	var word_files utility.ArrayFlags
 	var localStorage bool
-	var s []string
+	var s []string*/
+	var masterPort string
 
-	flag.Var(&word_files, "files", "The file to request.")
-	flag.Var(&nodes, "ports", "The list of worker with it's rpc coordinate")
-	flag.BoolVar(&localStorage, "local-storage", false, "If the storage  of the file is local")
+	flag.Var(&nodes, "workerAddr", "The list of worker with it's rpc coordinate")
+	flag.StringVar(&masterPort, "masterPort", "1049", "The rpc port of the master for the client")
+	/*flag.Var(&word_files, "files", "The file to request.")
+	flag.BoolVar(&localStorage, "local-storage", false, "If the storage  of the file is local")*/
 	flag.Parse()
+	fmt.Println("Starting rpc service")
+	serv_rpc(masterPort)
 
-	if (localStorage) {
+	/*if (localStorage) {
 		s = read_wordfiles(word_files)
 	} else {
 		s = read_wordfiles_fromS3(word_files)
-	}
+	}*/
 
-	for i := range nodes {
+	/*for i := range nodes {
 		call_load_topology_on_worker(nodes, nodes[i])
 	}
 
@@ -165,5 +210,5 @@ func main() {
 
 	for _, res := range results {
 		fmt.Println(res.Word, res.Occurrence)
-	}
+	}*/
 }

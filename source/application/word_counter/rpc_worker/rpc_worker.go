@@ -13,15 +13,15 @@ type Node struct {
 	Port string
 }
 
-type Word_count struct {
+type WordCount struct {
 	Word       string
 	Occurrence int
 }
 type Worker int
 
 var nodes []Node
-var mapper_words []Word_count
-var reducer_words []Word_count
+var mapper_words []WordCount
+var reducer_words []WordCount
 var worker_state int
 var mux sync.Mutex
 
@@ -29,25 +29,25 @@ const State_Idle = 0
 const State_Map = 1
 const State_Reducer = 2
 
-func string_split(text string) []Word_count {
+func string_split(text string) []WordCount {
 	text = strings.ToLower(text)
 	text = strings.Replace(text, "\n", " ", -1)
 	words := strings.Split(text, " ")
 	
-	var counted []Word_count
+	var counted []WordCount
 	for i := range words {
 		 trimmed_word := strings.TrimFunc(words[i], func(r rune) bool {
 			return !unicode.IsLetter(r) && !unicode.IsNumber(r)
 		})
 		if trimmed_word != "" { 
-			counted = append(counted, Word_count{trimmed_word, 1}) 
+			counted = append(counted, WordCount{trimmed_word, 1}) 
 		}
 	}
 	return counted
 }
 
-func count_words(words []Word_count) []Word_count {
-	var counted []Word_count
+func count_words(words []WordCount) []WordCount {
+	var counted []WordCount
 	for i := range words {
 		var j int
 		for j = 0; j < len(counted); j++ {
@@ -72,10 +72,10 @@ func reducer_key(word string, n_nodes int) int {
 	return res % n_nodes
 }
 
-func shaffle_and_sort(words []Word_count, n_nodes int) [][]Word_count {
-	words_by_reducer := make([][]Word_count, n_nodes)
+func shaffle_and_sort(words []WordCount, n_nodes int) [][]WordCount {
+	words_by_reducer := make([][]WordCount, n_nodes)
 	for i := range words_by_reducer {
-		words_by_reducer[i] = make([]Word_count, 0)
+		words_by_reducer[i] = make([]WordCount, 0)
 	}
 	for i := range words {
 		key := reducer_key(words[i].Word, n_nodes)
@@ -85,7 +85,7 @@ func shaffle_and_sort(words []Word_count, n_nodes int) [][]Word_count {
 }
 
 //ASYNC
-func call_reduce(words []Word_count, nodes []Node) {
+func call_reduce(words []WordCount, nodes []Node) {
 	words_by_reducer := shaffle_and_sort(words, len(nodes))
 	rpc_chan := make(chan *rpc.Call, len(nodes))
 	for i := range nodes {
@@ -121,7 +121,7 @@ func (t *Worker) Map(text string, res *bool) error {
 	return nil
 }
 
-func (t *Worker) Reduce(words []Word_count, res *bool) error {
+func (t *Worker) Reduce(words []WordCount, res *bool) error {
 	worker_state = State_Reducer
 
 	mux.Lock()
@@ -156,7 +156,7 @@ func (t *Worker) Load_Topology(nodes_list []Node, res *bool) error {
 	return nil
 }
 
-func (t *Worker) Get_Results(state bool, res *[]Word_count) error {
+func (t *Worker) Get_Results(state bool, res *[]WordCount) error {
 	if worker_state == State_Reducer {
 		*res = reducer_words
 		worker_state = State_Idle
