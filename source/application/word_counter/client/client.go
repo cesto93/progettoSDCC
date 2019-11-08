@@ -11,11 +11,7 @@ import (
 	"progettoSDCC/source/application/word_counter/rpc_worker"
 )
 
-const(
-	bucketName = "cesto93"
-)
-
-func putWordsToServer(names []string, paths []string){
+func putWordsToServer(bucketName string, names []string, paths []string){
 	s := storage.New(bucketName)
 	for i := range paths {
 		file, err := ioutil.ReadFile(paths[i])
@@ -43,15 +39,34 @@ func requestWordCount(wordFiles []string, node rpc_worker.Node) []rpc_worker.Wor
 	return res
 }
 
-func removeWordsFromServer(paths []string){
-	//TODO
+func removeWordsFromServer(bucketName string, keys []string){
+	s := storage.New(bucketName)
+	err := s.Delete(keys)
+	if err != nil {
+			fmt.Println(err)
+	}
+}
+
+func listFileOnServer(bucketName string) []string {
+	s := storage.New(bucketName)
+	res, err := s.List()
+	if err != nil {
+			fmt.Println(err)
+	}
+	return res
 }
 
 func main(){
+	var bucketName string
 	var names, paths utility.ArrayFlags
-	var load bool
+	var load, delete, list, count bool
 	var serverAddr rpc_worker.Node
 	flag.BoolVar(&load, "load", false, "Specify the load file operation")
+	flag.BoolVar(&delete, "delete", false, "Specify the delete file operation")
+	flag.BoolVar(&list, "list", false, "Specify the list file operation")
+	flag.BoolVar(&list, "count", false, "Specify the count word operation")
+
+	flag.StringVar(&bucketName, "bucket", "cesto93", "The name of the bucket on aws")
 	flag.Var(&names, "names", "Name of file to upload.")
 	flag.Var(&paths, "paths", "Path of file to upload.")
 	flag.Var(&serverAddr, "serverAddr", "The server port for the rpc")
@@ -60,8 +75,12 @@ func main(){
 		if( len(names) != len(paths)){
 			fmt.Println("Error, paths and names must have same dimension")
 		}
-		putWordsToServer(names, paths)
-	} else {
+		putWordsToServer(bucketName, names, paths)
+	} else if (delete) {
+		removeWordsFromServer(bucketName, names)
+	} else if (list) {
+		fmt.Println(listFileOnServer(bucketName))
+	} else if (count){
 		results := requestWordCount(names, serverAddr)
 		for _, res := range results {
 			fmt.Println(res.Word, res.Occurrence)
