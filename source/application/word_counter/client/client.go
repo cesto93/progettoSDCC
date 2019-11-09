@@ -8,7 +8,8 @@ import (
 	"net/rpc"
 	"progettoSDCC/source/application/word_counter/utility"
 	"progettoSDCC/source/application/word_counter/storage"
-	"progettoSDCC/source/application/word_counter/rpc_worker"
+	"progettoSDCC/source/application/word_counter/rpc_utils"
+	"progettoSDCC/source/application/word_counter/word_count_utils"
 )
 
 func putWordsToServer(bucketName string, names []string, paths []string){
@@ -25,8 +26,8 @@ func putWordsToServer(bucketName string, names []string, paths []string){
 	}
 }
 
-func requestWordCount(wordFiles []string, node rpc_worker.Node) []rpc_worker.WordCount{
-	var res []rpc_worker.WordCount
+func requestWordCount(wordFiles []string, node rpc_utils.Node) []word_count_utils.WordCount{
+	var res []word_count_utils.WordCount
 	client, err := rpc.DialHTTP("tcp", node.Address + ":" + node.Port)
 	if err != nil {
 		log.Fatal("Error in dialing: ", err)
@@ -60,11 +61,11 @@ func main(){
 	var bucketName string
 	var names, paths utility.ArrayFlags
 	var load, delete, list, count bool
-	var serverAddr rpc_worker.Node
+	var serverAddr rpc_utils.Node
 	flag.BoolVar(&load, "load", false, "Specify the load file operation")
 	flag.BoolVar(&delete, "delete", false, "Specify the delete file operation")
 	flag.BoolVar(&list, "list", false, "Specify the list file operation")
-	flag.BoolVar(&list, "count", false, "Specify the count word operation")
+	flag.BoolVar(&count, "count", false, "Specify the count word operation")
 
 	flag.StringVar(&bucketName, "bucket", "cesto93", "The name of the bucket on aws")
 	flag.Var(&names, "names", "Name of file to upload.")
@@ -81,6 +82,7 @@ func main(){
 	} else if (list) {
 		fmt.Println(listFileOnServer(bucketName))
 	} else if (count){
+		fmt.Println("Requesting word count to master")
 		results := requestWordCount(names, serverAddr)
 		for _, res := range results {
 			fmt.Println(res.Word, res.Occurrence)

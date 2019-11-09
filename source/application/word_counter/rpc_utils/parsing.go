@@ -1,4 +1,4 @@
-package rpc_worker
+package rpc_utils
 
 import (
 	"errors"

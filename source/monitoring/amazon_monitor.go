@@ -18,9 +18,6 @@ func cloudwatchEC2Metric(metricName string, instanceIds []string, metricId strin
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := cloudwatch.New(sess)
 
- 	//endTime := time.Now()
-	//duration, _ := time.ParseDuration("-5m")
-	//startTime := endTime.Add(duration)
 	namespace := "AWS/EC2"
 	metricDimName := "InstanceId"
 
@@ -83,14 +80,6 @@ func cloudwatchEC2Metrics(instanceIds []string, stat string, startTime time.Time
  	startTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
  	endTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
  	instanceIds := []string{"i-0706dcb2c513b981c"}
-
- 	/*results := cloudwatchEC2Metric("CPUUtilization", instanceIds, "cpu1", "Average", startTime, endTime, 300)
- 	for _, metricdata := range results {
-		fmt.Println(*metricdata.Id)
-		for index, _ := range metricdata.Timestamps {
-			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
-		}
-	}*/
 
 	cloudwatchEC2Metrics(instanceIds, "Average", startTime, endTime, 60)	
  }
