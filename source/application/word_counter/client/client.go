@@ -6,7 +6,7 @@ import (
 	"flag"
 	"log"
 	"net/rpc"
-	"progettoSDCC/source/application/word_counter/utility"
+	"progettoSDCC/source/utility"
 	"progettoSDCC/source/application/word_counter/storage"
 	"progettoSDCC/source/application/word_counter/rpc_utils"
 	"progettoSDCC/source/application/word_counter/word_count_utils"
