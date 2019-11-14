@@ -1,0 +1,147 @@
+[
+  {
+    "awsmetric" : {
+    "name": "CPUCreditUsage",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "CPUCreditBalance",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  }
+  ,
+  {
+    "awsmetric" :{
+    "name": "CPUSurplusCreditBalance",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  { 
+    "awsmetric" :{
+    "name": "CPUSurplusCreditsCharged",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "NetworkPacketsIn",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "NetworkPacketsOut",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "CPUUtilization",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "NetworkIn",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "NetworkOut",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "DiskReadBytes",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "DiskWriteBytes",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "DiskReadOps",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "DiskWriteOps",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "StatusCheckFailed_System",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "StatusCheckFailed_Instance",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  },
+  {
+    "awsmetric" :{
+    "name": "StatusCheckFailed",
+    "namespace" : "AWS/EC2"
+    },
+    "monitoring": true,
+    "dimensionnames" : null,
+    "dimensionvalues" : null
+  }
+]

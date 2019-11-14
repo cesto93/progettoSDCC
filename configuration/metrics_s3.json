@@ -1,0 +1,20 @@
+[
+  {
+    "awsmetric" : {
+    "name": "BucketSizeBytes",
+    "namespace" : "AWS/S3"
+    },
+     "monitoring": true,
+     "dimensionnames" : ["StorageType"],
+     "dimensionvalues" : ["StandardStorage"]
+  },
+  {
+    "awsmetric" : {
+    "name": "NumberOfObjects",
+    "namespace" : "AWS/S3"
+    },
+     "monitoring": true,
+     "dimensionnames" : ["StorageType"],
+     "dimensionvalues" : ["AllStorageTypes"]
+  }
+]

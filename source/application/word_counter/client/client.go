@@ -21,7 +21,7 @@ func putWordsToServer(bucketName string, names []string, paths []string){
 		}
 		err = s.Write(names[i], []byte(file))
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 	}
 }
@@ -44,7 +44,7 @@ func removeWordsFromServer(bucketName string, keys []string){
 	s := storage.New(bucketName)
 	err := s.Delete(keys)
 	if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 	}
 }
 
@@ -52,7 +52,7 @@ func listFileOnServer(bucketName string) []string {
 	s := storage.New(bucketName)
 	res, err := s.List()
 	if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 	}
 	return res
 }
@@ -74,7 +74,7 @@ func main(){
 	flag.Parse()
 	if (load) {
 		if( len(names) != len(paths)){
-			fmt.Println("Error, paths and names must have same dimension")
+			log.Fatal("Error, paths and names must have same dimension")
 		}
 		putWordsToServer(bucketName, names, paths)
 	} else if (delete) {
