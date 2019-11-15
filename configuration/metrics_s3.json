@@ -5,8 +5,8 @@
     "namespace" : "AWS/S3"
     },
      "monitoring": true,
-     "dimensionnames" : ["StorageType"],
-     "dimensionvalues" : ["StandardStorage"]
+     "dimensionnames" : ["StorageType", "BucketName"],
+     "dimensionvalues" : ["StandardStorage", "cesto93"]
   },
   {
     "awsmetric" : {
@@ -14,7 +14,7 @@
     "namespace" : "AWS/S3"
     },
      "monitoring": true,
-     "dimensionnames" : ["StorageType"],
-     "dimensionvalues" : ["AllStorageTypes"]
+     "dimensionnames" : ["StorageType", "BucketName"],
+     "dimensionvalues" : ["AllStorageTypes", "cesto93"]
   }
 ]
