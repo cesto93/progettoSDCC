@@ -1,0 +1,33 @@
+[
+	{
+		"Monitor": "Google",
+		"Name": "CPU utilization",
+		"Url": "compute.googleapis.com/instance/cpu/utilization"
+	},
+	{
+		"Monitor": "Google",
+		"Name": "Received bytes",
+		"Url": "compute.googleapis.com/instance/network/received_bytes_count"
+	},
+	{
+		"Monitor": "Google",
+		"Name": "Memory utilization",
+		"Url": "agent.googleapis.com/memory/percent_used",
+		"Labels": [
+		 	{
+			"Name": "state",
+			"Value": "used"
+			}
+		]
+	},
+	{
+		"Monitor": "Prometheus",
+		"Name":	"Up",
+		"Url": "http://localhost:9090/api/v1/query?query=up"
+	},
+	{
+		"Monitor": "Prometheus",
+		"Name":	"Total context switches",
+		"Url": "http://localhost:9090/api/v1/query?query=node_context_switches_total"
+	}
+]
