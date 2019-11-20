@@ -1,4 +1,4 @@
-package rpc_worker
+package rpc_utils
 
 import (
 	"errors"
@@ -20,5 +20,15 @@ func (i *NodeList) Set(value string) error {
 		node := Node{data[0], data[1]}
 		*i = append(*i, node)
 	}
+	return nil
+}
+
+func (i *Node) String() string {
+    return "my node representation"
+}
+
+func (i *Node) Set(value string) error {
+	data := strings.Split(value, ":")
+	*i = Node{data[0], data[1]}
 	return nil
 }

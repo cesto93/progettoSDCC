@@ -1,96 +1,153 @@
  package main
 
- import (
+import (
  	"fmt"
- 	"os"
+ 	"log"
  	"time"
+ 	"strings"
  	"github.com/aws/aws-sdk-go/aws"
  	"github.com/aws/aws-sdk-go/aws/session"
  	"github.com/aws/aws-sdk-go/service/cloudwatch"
+ 	"progettoSDCC/source/utility"
  )
 
- const (
-	awsRegion = "us-east-1"
-)
+const (
+ 	awsRegion = "us-east-1"
+ 	EC2MetricJsonPath = "../../configuration/metrics_ec2.json"
+ 	EC2InstPath = "../../configuration/ec2_inst.json"
+ 	S3MetricPath = "../../configuration/metrics_s3.json"
+ 	S3BucketPath = "../../configuration/s3_buckets.json"
+ )
 
-func cloudwatchEC2Metric(metricName string, instanceIds []string, metricId string, stat string, startTime time.Time, endTime time.Time, 
-							period int64) []*cloudwatch.MetricDataResult {
+type AWSMetric struct {
+	Namespace string
+ 	Name string
+ 	Dimensions []*cloudwatch.Dimension
+ }
+
+ type AWSMetricJson struct{
+ 	AWSMetric AWSMetric
+ 	Monitoring bool
+ 	DimensionNames []string
+ 	DimensionValues []string
+ }
+
+type EC2Inst []string
+
+func cloudwatchClient(awsRegion string) *cloudwatch.CloudWatch{
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
  	svc := cloudwatch.New(sess)
+ 	return svc
+}
 
- 	//endTime := time.Now()
-	//duration, _ := time.ParseDuration("-5m")
-	//startTime := endTime.Add(duration)
-	namespace := "AWS/EC2"
-	metricDimName := "InstanceId"
+func importMetrics(metricsJ []AWSMetricJson) []AWSMetric {
+	res := make([]AWSMetric, 0)
+	for _, metricJ := range metricsJ {
+		if metricJ.Monitoring == true {
+			dimensions := make([]*cloudwatch.Dimension, len(metricJ.DimensionValues))
+			for j,_ := range metricJ.DimensionValues {
+				dimensions[j] = &cloudwatch.Dimension{
+					Name : &metricJ.DimensionNames[j],
+					Value : &metricJ.DimensionValues[j],
+				}
+			}
+			metricJ.AWSMetric.Dimensions = dimensions
 
-	dimensions := make([]*cloudwatch.Dimension, len(instanceIds))
-	for i := 0; i < len(instanceIds); i++ {
-		dimensions[i] = &cloudwatch.Dimension{
-			Name : &metricDimName,
-			Value : &instanceIds[i],
+			res = append(res, metricJ.AWSMetric)
 		}
 	}
+	return res
+}
 
-	query := &cloudwatch.MetricDataQuery{
-		Id: &metricId,
-		MetricStat: &cloudwatch.MetricStat{
-			Metric: &cloudwatch.Metric{
-				Namespace:  &namespace,
-				MetricName: &metricName,
-				Dimensions: dimensions,
+func loadDimensionsSameName(metrics []AWSMetric, dimensionName string, dimensionValues []string) []AWSMetric{
+	for i, _ := range metrics {
+		for j,_ := range dimensionValues {
+			dimension := &cloudwatch.Dimension{
+				Name : &dimensionName,
+				Value : &dimensionValues[j],
+			}
+			metrics[i].Dimensions = append(metrics[i].Dimensions, dimension)
+		}
+	}
+	return metrics
+}
+
+func loadDimensions(metrics []AWSMetric, dimensionNames []string, dimensionValues []string) []AWSMetric{
+	for i, _ := range metrics {
+		for j,_ := range dimensionNames {
+			dimension := &cloudwatch.Dimension{
+				Name : &dimensionNames[j],
+				Value : &dimensionValues[j],
+			}
+			metrics[i].Dimensions = append(metrics[i].Dimensions, dimension)
+		}
+	}
+	return metrics
+}
+
+func cloudwatchPrintMetrics(results []*cloudwatch.MetricDataResult) {
+	for _, metricdata := range results {
+	fmt.Println(*metricdata.Label)
+	for j, _ := range metricdata.Timestamps {
+		fmt.Printf("%v %v\n", (*metricdata.Timestamps[j]).String(), *metricdata.Values[j])
+		}
+	} 
+}
+
+func cloudwatchGetMetrics(svc *cloudwatch.CloudWatch, metrics []AWSMetric, 
+							stat string, startTime time.Time, endTime time.Time, 
+							period int64) []*cloudwatch.MetricDataResult {
+	query := make([]*cloudwatch.MetricDataQuery, len(metrics))
+	for i := 0; i < len(metrics); i++ {
+		query[i] = &cloudwatch.MetricDataQuery{
+			Id: aws.String(strings.ToLower(metrics[i].Name)),
+			MetricStat: &cloudwatch.MetricStat{
+				Metric: &cloudwatch.Metric{
+					Namespace:  &metrics[i].Namespace,
+					MetricName: &metrics[i].Name,
+					Dimensions: metrics[i].Dimensions,
+				},
+				Period: &period,
+				Stat:   &stat,
 			},
-			Period: &period,
-			Stat:   &stat,
-		},
+		}
 	}
 
 	resp, err := svc.GetMetricData(&cloudwatch.GetMetricDataInput{
 		EndTime:           &endTime,
 		StartTime:         &startTime,
-		MetricDataQueries: []*cloudwatch.MetricDataQuery{query},
+		MetricDataQueries: query,
 	})
 
 	if err != nil {
-		fmt.Println("Got error getting metric data")
-		fmt.Println(err.Error())
-		os.Exit(1)
+		log.Fatal("Error in GetMetricData", err)
 	}
 	return resp.MetricDataResults;
 }
 
-func cloudwatchEC2Metrics(instanceIds []string, stat string, startTime time.Time, endTime time.Time, period int64) {
-	metricNames := []string{"CPUCreditUsage", "CPUCreditBalance", "CPUSurplusCreditBalance", "CPUSurplusCreditsCharged", 
-	"NetworkPacketsIn", "NetworkPacketsOut", "CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadBytes", "DiskWriteBytes", 
-	"DiskReadOps", "DiskWriteOps", "StatusCheckFailed_System", "StatusCheckFailed_Instance", "StatusCheckFailed"}
-
-	metricIds := []string{"cpucreditusage", "cpucreditbalance", "cpusurpluscreditbalance", "cpusurpluscreditscharged", 
-	"netpackin", "netpackout", "cpuutil", "networkin", "networkout", "diskreadbytes", "diskwritebytes", 
-	"diskreadops", "diskwriteops", "statuscheckfailed_system", "statuscheckfailed_instance", "statuscheckfailed"}
-
-	for i, _ := range metricNames {
-		results := cloudwatchEC2Metric(metricNames[i], instanceIds, metricIds[i], "Average", startTime, endTime, 300)
-		for _, metricdata := range results {
-		fmt.Println(*metricdata.Id)
-		for j, _ := range metricdata.Timestamps {
-			fmt.Printf("%v %v\n", (*metricdata.Timestamps[j]).String(), *metricdata.Values[j])
-			}
-		}
-	} 
-}
-
  func main() {
- 	startTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:30:00+02:00")
- 	endTime, _ := time.Parse(time.RFC3339, "2019-10-17T12:40:00+02:00")
- 	instanceIds := []string{"i-0706dcb2c513b981c"}
+ 	startTime, _ := time.Parse(time.RFC3339, "2019-11-09T15:35:00+02:00")
+ 	endTime, _ := time.Parse(time.RFC3339, "2019-11-09T16:00:00+02:00")
+ 	var instanceIds, bucketNames []string
+ 	var ec2MetricsJ, s3MetricsJ []AWSMetricJson
 
- 	/*results := cloudwatchEC2Metric("CPUUtilization", instanceIds, "cpu1", "Average", startTime, endTime, 300)
- 	for _, metricdata := range results {
-		fmt.Println(*metricdata.Id)
-		for index, _ := range metricdata.Timestamps {
-			fmt.Printf("%v %v\n", (*metricdata.Timestamps[index]).String(), *metricdata.Values[index])
-		}
-	}*/
+	utility.ImportJson(EC2MetricJsonPath, &ec2MetricsJ)
+ 	utility.ImportJson(EC2InstPath, &instanceIds)
+ 	utility.ImportJson(S3MetricPath, &s3MetricsJ)
+ 	utility.ImportJson(S3BucketPath, &bucketNames)
 
-	cloudwatchEC2Metrics(instanceIds, "Average", startTime, endTime, 60)	
+ 	ec2Metrics := importMetrics(ec2MetricsJ)
+ 	s3Metrics := importMetrics(s3MetricsJ)
+
+ 	ec2Metrics = loadDimensionsSameName(ec2Metrics, "InstanceId", instanceIds)
+ 	s3Metrics = loadDimensionsSameName(s3Metrics, "BucketName", bucketNames)
+
+ 	//fmt.Println(s3Metrics)
+
+ 	svc := cloudwatchClient(awsRegion)
+ 	
+	ec2Data := cloudwatchGetMetrics(svc, ec2Metrics, "Average", startTime, endTime, 300)
+	cloudwatchPrintMetrics(ec2Data)
+	s3Data := cloudwatchGetMetrics(svc, s3Metrics, "Average", startTime, endTime, 300)
+	cloudwatchPrintMetrics(s3Data)	
  }
