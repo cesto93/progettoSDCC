@@ -8,8 +8,8 @@ import (
 	"net/rpc"
 	"progettoSDCC/source/utility"
 	"progettoSDCC/source/application/word_counter/storage"
-	"progettoSDCC/source/application/word_counter/rpc_utils"
-	"progettoSDCC/source/application/word_counter/word_count_utils"
+	"progettoSDCC/source/application/word_counter/rpcUtils"
+	"progettoSDCC/source/application/word_counter/wordCountUtils"
 )
 
 func putWordsToServer(bucketName string, names []string, paths []string){
@@ -26,7 +26,7 @@ func putWordsToServer(bucketName string, names []string, paths []string){
 	}
 }
 
-func requestWordCount(wordFiles []string, node rpc_utils.Node) []word_count_utils.WordCount{
+func requestWordCount(wordFiles []string, node rpcUtils.Node) []word_count_utils.WordCount{
 	var res []word_count_utils.WordCount
 	client, err := rpc.DialHTTP("tcp", node.Address + ":" + node.Port)
 	if err != nil {
@@ -61,7 +61,7 @@ func main(){
 	var bucketName string
 	var names, paths utility.ArrayFlags
 	var load, delete, list, count bool
-	var serverAddr rpc_utils.Node
+	var serverAddr rpcUtils.Node
 	flag.BoolVar(&load, "load", false, "Specify the load file operation")
 	flag.BoolVar(&delete, "delete", false, "Specify the delete file operation")
 	flag.BoolVar(&list, "list", false, "Specify the list file operation")

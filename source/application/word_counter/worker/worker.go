@@ -6,13 +6,13 @@ import (
 	"os"
 	"sync"
 	"fmt"
-	"progettoSDCC/source/application/word_counter/word_count_utils"
-	"progettoSDCC/source/application/word_counter/rpc_utils"
+	"progettoSDCC/source/application/word_counter/wordCountUtils"
+	"progettoSDCC/source/application/word_counter/rpcUtils"
 )
 
 type Worker int
 
-var nodes []rpc_utils.Node
+var nodes []rpcUtils.Node
 var mapper_words []word_count_utils.WordCount
 var reducer_words []word_count_utils.WordCount
 var worker_state int
@@ -44,7 +44,7 @@ func shaffleAndSort(words []word_count_utils.WordCount, n_nodes int) [][]word_co
 }
 
 //ASYNC
-func callReduce(words []word_count_utils.WordCount, nodes []rpc_utils.Node) {
+func callReduce(words []word_count_utils.WordCount, nodes []rpcUtils.Node) {
 	words_by_reducer := shaffleAndSort(words, len(nodes))
 	rpc_chan := make(chan *rpc.Call, len(nodes))
 	for i := range nodes {
@@ -103,7 +103,7 @@ func (t *Worker) EndMapFase(state bool, res *bool) error {
 	return nil
 }
 
-func (t *Worker) LoadTopology(nodes_list []rpc_utils.Node, res *bool) error {
+func (t *Worker) LoadTopology(nodes_list []rpcUtils.Node, res *bool) error {
 	nodes = nodes_list
 
 	//reset_words
@@ -127,5 +127,5 @@ func main() {
 	port := os.Args[1]
 	fmt.Println("Starting rpc service")
 	worker := new(Worker)
-	rpc_utils.ServRpc(port, "Worker", worker)
+	rpcUtils.ServRpc(port, "Worker", worker)
 }

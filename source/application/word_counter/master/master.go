@@ -6,13 +6,13 @@ import (
 	"net/rpc"
 	"flag"
 	"progettoSDCC/source/application/word_counter/storage"
-	"progettoSDCC/source/application/word_counter/rpc_utils"
-	"progettoSDCC/source/application/word_counter/word_count_utils"
+	"progettoSDCC/source/application/word_counter/rpcUtils"
+	"progettoSDCC/source/application/word_counter/wordCountUtils"
 )
 
 type Master int
 
-var nodes rpc_utils.NodeList
+var nodes rpcUtils.NodeList
 var bucketName string
 
 func readWordfilesFromS3(keys []string, bucketName string) []string {
@@ -30,7 +30,7 @@ func readWordfilesFromS3(keys []string, bucketName string) []string {
 }
 
 //ASYNC
-func callMapOnWorkers(texts []string, nodes []rpc_utils.Node) {
+func callMapOnWorkers(texts []string, nodes []rpcUtils.Node) {
 	rpc_chan := make(chan *rpc.Call, len(nodes))
 	for i := range texts {
 		client, err := rpc.DialHTTP("tcp", nodes[i % len(nodes)].Address + ":" + nodes[i % len(nodes)].Port)
@@ -49,7 +49,7 @@ func callMapOnWorkers(texts []string, nodes []rpc_utils.Node) {
 }
 
 //ASYNC
-func callBarrierOnWorkers(nodes []rpc_utils.Node) {
+func callBarrierOnWorkers(nodes []rpcUtils.Node) {
 
 	rpc_chan := make(chan *rpc.Call, len(nodes))
 	for i := range nodes {
@@ -70,7 +70,7 @@ func callBarrierOnWorkers(nodes []rpc_utils.Node) {
 }
 
 //SYNC
-func callLoadTopologyOnWorker(topology []rpc_utils.Node, node rpc_utils.Node) {
+func callLoadTopologyOnWorker(topology []rpcUtils.Node, node rpcUtils.Node) {
 	client, err := rpc.DialHTTP("tcp", node.Address + ":" + node.Port)
 	if err != nil {
 		log.Fatal("Error in dialing: ", err)
@@ -83,7 +83,7 @@ func callLoadTopologyOnWorker(topology []rpc_utils.Node, node rpc_utils.Node) {
 }
 
 //SYNC
-func getResultsOnWorkers(nodes []rpc_utils.Node) []word_count_utils.WordCount {
+func getResultsOnWorkers(nodes []rpcUtils.Node) []word_count_utils.WordCount {
 	var res []word_count_utils.WordCount
 	for i := range nodes {
 		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
@@ -131,5 +131,5 @@ func main() {
 	flag.Parse()
 	fmt.Println("Starting rpc service")
 	master := new(Master)
-	rpc_utils.ServRpc(masterPort, "Master", master)
+	rpcUtils.ServRpc(masterPort, "Master", master)
 }
