@@ -54,8 +54,10 @@ server.3=${IP[2]}:2888:3888' | tee ./zookeeper/conf/zoo.cfg
 
 #project conf
 git clone git@github.com:cesto93/progettoSDCC
+cd ./go/src/progettoSDCC
 go build -o ./source/application/word_counter/worker/worker ./source/application/word_counter/worker/worker.go
 go build -o ./source/application/word_counter/master/master ./source/application/word_counter/master/master.go
+go build -o ./source/monitoring/agent ./source/monitoring/agent.go
 
 #configuration of parameters
 echo ${ID[@]} | jq -s 'add | flatten' > ./progettoSDCC/configuration/ec2_inst.json
