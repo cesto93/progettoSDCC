@@ -3,3 +3,5 @@
 /source/application/word_counter/master/master
 /source/application/word_counter/client/client
 /source/monitoring/agent
+/configuration/ec2_inst.json
+/configuration/zk_servers_addrs.json

@@ -21,7 +21,7 @@ done
 for (( i=0; i<${#NAMES[@]}; i++ ));
 do
 
-echo -e "COPYING SSH KEY FOR GIT DEPLOYMENT\n"
+echo -e "COPYING SSH KEY FOR GIT DEPLOYMENT TO ${INSTANCE_DNS[$i]} \n"
 scp -o "StrictHostKeyChecking=no" -i $KEY_POS $LOCAL_DIR/$GIT_KEY_FILE  ec2-user@${INSTANCE_DNS[$i]}:$AWS_DIR
 scp -o "StrictHostKeyChecking=no" -i $KEY_POS $LOCAL_DIR/config  ec2-user@${INSTANCE_DNS[$i]}:$AWS_DIR
 
@@ -31,6 +31,7 @@ ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[$i]} "
 sudo yum update -y
 sudo yum install git -y
 sudo yum install -y golang
+sudo yum install -y jq
 go get -u github.com/aws/aws-sdk-go
 go get -u github.com/samuel/go-zookeeper/zk
 
@@ -38,6 +39,7 @@ go get -u github.com/samuel/go-zookeeper/zk
 sudo wget https://www-us.apache.org/dist/zookeeper/zookeeper-3.5.6/apache-zookeeper-3.5.6-bin.tar.gz
 sudo tar -xzf  apache-zookeeper-3.5.6-bin.tar.gz
 sudo rm -rf ./zookeeper
+sudo rm apache-zookeeper-3.5.6-bin.tar.gz
 sudo mv apache-zookeeper-3.5.6-bin ./zookeeper
 
 #zookeeper conf file
