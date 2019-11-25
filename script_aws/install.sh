@@ -3,7 +3,6 @@
 KEY_POS="/home/pier/Desktop/progetto_sdcc/myKey.pem"
 NAMES=( "master" "worker-1" "worker-2" "worker-3" )
 
-
 for (( i=0; i<${#NAMES[@]}; i++ ));
 do
 
@@ -24,6 +23,5 @@ git pull git@github.com:cesto93/progettoSDCC
 go build -o ./source/application/word_counter/worker/worker ./source/application/word_counter/worker/worker.go
 go build -o ./source/application/word_counter/master/master ./source/application/word_counter/master/master.go
 "
-
 done
 

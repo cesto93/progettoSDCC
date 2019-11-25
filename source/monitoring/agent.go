@@ -2,60 +2,84 @@ package main
 
 import (
  	"time"
- 	"log"
+ 	"fmt"
+ 	"flag"
  	"progettoSDCC/source/monitoring/monitor"
  	"progettoSDCC/source/monitoring/zookeeper"
+ 	"progettoSDCC/source/monitoring/restarter"
  	"progettoSDCC/source/utility"
  )
 
  const (
  	zkServersIpPath = "../../configuration/zk_servers_addrs.json"
- 	monitorMembersPath = "../../configuration/monitor_members.json"
+ 	ec2InstPath = "../../configuration/ec2_inst.json"
  	membershipNodePath = "/membership"
  	sessionTimeout = 10
  	monitorInterval = 300
- 	aws = true
  )
 
  func saveMetrics(monitorBridge monitor.MonitorBridge) {
  	start := time.Now()
  	end := start.Add(time.Second * monitorInterval) 
- 	ec2Data := monitorBridge.GetMetrics(start, end)
- 	monitor.PrintMetrics(ec2Data)
+ 	ec2Data, err := monitorBridge.GetMetrics(start, end)
+ 	utility.CheckError(err)
+ 	printMetrics(ec2Data)
  }
 
- func checkMembersAlive(zkBridge *zookeeper.ZookeeperBridge) {
+ func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge) {
  	for {
- 		zkBridge.CheckMembers()
+ 		zkBridge.CheckMembersDead()
  	}
  }
+
+ func printMetrics(results []monitor.MetricData) {
+	for _, metricdata := range results {
+		fmt.Println(metricdata.Label)
+		for j, _ := range metricdata.Timestamps {
+			fmt.Printf("%v %v\n", (metricdata.Timestamps[j]).String(), metricdata.Values[j])
+		}
+	} 
+}
 
 func main() {
 	var zkServerAddresses, members []string
 	var monitorBridge monitor.MonitorBridge
+	var myRestarter restarter.Restarter
+	var aws bool
+
+	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
+
  	/*startTime, _ := time.Parse(time.RFC3339, "2019-11-09T15:35:00+02:00")
  	endTime, _ := time.Parse(time.RFC3339, "2019-11-09T16:00:00+02:00")*/
  	startTime, _ := time.Parse(time.RFC3339, "2019-11-09T00:00:00+00:00")
  	endTime, _ := time.Parse(time.RFC3339, "2019-11-09T00:10:00+00:00")
 
- 	utility.ImportJson(zkServersIpPath, zkServerAddresses)
- 	utility.ImportJson(monitorMembersPath, members)
  	
  	if (aws) {
- 		monitorBridge = monitor.New()
+ 		monitorBridge = monitor.NewAws()
+ 		myRestarter = restarter.NewAws()
+ 		utility.ImportJson(ec2InstPath, members)
+ 		utility.ImportJson(zkServersIpPath, zkServerAddresses)
+ 		zkServersIpPath = zkServersIpPath[0:3] //pick only 3 members for servers
  	} else {
  		//TODO insert google monitor here
  		return
  	}
 
  	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, membershipNodePath, members)
+ 	utility.CheckError(err)
+ 	go checkMembersDead(zkBridge)
 
- 	if (err != nil) {
- 		log.Fatal("Error in zkBridge generation: ", err)
- 	}
- 	go checkMembersAlive(zkBridge)
+	ec2Data, err := monitorBridge.GetMetrics(startTime, endTime)
+	utility.CheckError(err)
+	printMetrics(ec2Data)
 
-	ec2Data := monitorBridge.GetMetrics(startTime, endTime)
-	monitor.PrintMetrics(ec2Data)
-
+	for {
+		if zkBridge.MembersDead != nil {
+			for _, dead := range zkBridge.MembersDead {
+				myRestarter.Restart(dead)
+			}
+		}
+		saveMetrics(monitorBridge)
+	}
  }

@@ -2,9 +2,14 @@ package monitor
 
 import (
 	"time"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
+type MetricData struct {
+	Label string
+	Timestamps []time.Time
+	Values []float64 
+}
+
 type MonitorBridge interface {
-	GetMetrics(startTime time.Time, endTime time.Time) []*cloudwatch.MetricDataResult
+	GetMetrics(startTime time.Time, endTime time.Time) ([]MetricData, error)
 }

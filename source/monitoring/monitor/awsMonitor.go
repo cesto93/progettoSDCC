@@ -2,7 +2,6 @@ package monitor
 
 import (
  	"fmt"
- 	"log"
  	"time"
  	"strings"
  	"github.com/aws/aws-sdk-go/aws"
@@ -19,30 +18,32 @@ const (
  	StatPath = "../../configuration/monitoring_stat.json"
  )
 
-type AWSMetric struct {
+type AwsMonitor struct {
+ 	client *cloudwatch.CloudWatch
+ 	stat AwsStat
+ 	metrics []AwsMetric
+}
+
+//Used by json
+type AwsMetric struct {
 	Namespace string
  	Name string
  	Dimensions []*cloudwatch.Dimension
- }
+}
 
- type AWSMetricJson struct{
- 	AWSMetric AWSMetric
+//Used by json
+type AwsMetricJson struct{
+ 	AWSMetric AwsMetric
  	Monitoring bool
  	DimensionNames []string
  	DimensionValues []string
- }
+}
 
- type AWSStat struct{
+//Used by json
+type AwsStat struct{
  	Stat string
  	Period int64
- }
-
- type AWSMonitor struct {
- 	client *cloudwatch.CloudWatch
- 	stat AWSStat
- 	metrics []AWSMetric
- }
-
+}
 
 func cloudwatchClient(awsRegion string) *cloudwatch.CloudWatch{
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
@@ -50,8 +51,8 @@ func cloudwatchClient(awsRegion string) *cloudwatch.CloudWatch{
  	return svc
 }
 
-func importMetrics(metricsJ []AWSMetricJson) ([]AWSMetric, [][] *cloudwatch.Dimension) {
-	metrics := make([]AWSMetric, 0)
+func importMetrics(metricsJ []AwsMetricJson) ([]AwsMetric, [][] *cloudwatch.Dimension) {
+	metrics := make([]AwsMetric, 0)
 	dimensions := make([][]*cloudwatch.Dimension, len(metricsJ))
 	for i, metricJ := range metricsJ {
 		if metricJ.Monitoring == true {
@@ -68,14 +69,14 @@ func importMetrics(metricsJ []AWSMetricJson) ([]AWSMetric, [][] *cloudwatch.Dime
 	return metrics, dimensions
 }
 
-func appendDimensions(metrics []AWSMetric, dimensions [][] *cloudwatch.Dimension) []AWSMetric {
+func appendDimensions(metrics []AwsMetric, dimensions [][] *cloudwatch.Dimension) []AwsMetric {
 	for i,_ := range dimensions {
 		metrics[i].Dimensions = append(metrics[i].Dimensions, dimensions[i]...)
 	}
 	return metrics
 }
 
-func loadDimensionsSameName(metrics []AWSMetric, dimensionName string, dimensionValues []string) []AWSMetric{
+func loadDimensionsSameName(metrics []AwsMetric, dimensionName string, dimensionValues []string) []AwsMetric{
 	for i, _ := range metrics {
 		for j,_ := range dimensionValues {
 			dimension := &cloudwatch.Dimension{
@@ -88,7 +89,8 @@ func loadDimensionsSameName(metrics []AWSMetric, dimensionName string, dimension
 	return metrics
 }
 
-func loadDimensions(metrics []AWSMetric, dimensionNames []string, dimensionValues []string) []AWSMetric{
+//UNUSED
+func loadDimensions(metrics []AwsMetric, dimensionNames []string, dimensionValues []string) []AwsMetric{
 	for i, _ := range metrics {
 		for j,_ := range dimensionNames {
 			dimension := &cloudwatch.Dimension{
@@ -101,16 +103,17 @@ func loadDimensions(metrics []AWSMetric, dimensionNames []string, dimensionValue
 	return metrics
 }
 
-func PrintMetrics(results []*cloudwatch.MetricDataResult) {
+//DEBUG
+func printAwsMetrics(results []*cloudwatch.MetricDataResult) {
 	for _, metricdata := range results {
-	fmt.Println(*metricdata.Label)
-	for j, _ := range metricdata.Timestamps {
-		fmt.Printf("%v %v\n", (*metricdata.Timestamps[j]).String(), *metricdata.Values[j])
+		fmt.Println(*metricdata.Label)
+		for j, _ := range metricdata.Timestamps {
+			fmt.Printf("%v %v\n", (*metricdata.Timestamps[j]).String(), *metricdata.Values[j])
 		}
 	} 
 }
 
-func (monitor *AWSMonitor) GetMetrics(startTime time.Time, endTime time.Time) []*cloudwatch.MetricDataResult {
+func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([]*cloudwatch.MetricDataResult, error) {
 	query := make([]*cloudwatch.MetricDataQuery, len(monitor.metrics))
 	for i,_ := range monitor.metrics {
 		query[i] = &cloudwatch.MetricDataQuery{
@@ -134,15 +137,35 @@ func (monitor *AWSMonitor) GetMetrics(startTime time.Time, endTime time.Time) []
 	})
 
 	if err != nil {
-		log.Fatal("Error in GetMetricData", err)
+		return nil, fmt.Errorf("Error in GetMetricData, %v", err)
 	}
-	return resp.MetricDataResults;
+	return resp.MetricDataResults, nil;
 }
 
-func New() *AWSMonitor {
-	var ec2MetricsJ, s3MetricsJ []AWSMetricJson
+func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([]MetricData, error) {
+	awsRes, err := monitor.getMetrics(startTime, endTime)
+	res := make([]MetricData, len(awsRes))
+
+	if err != nil {
+		return nil, err
+	}
+	
+	for i, metricdata := range awsRes {
+		res[i].Label = *metricdata.Label
+		res[i].Values = make([]float64, len(metricdata.Timestamps))
+		res[i].Timestamps = make([]time.Time, len(metricdata.Timestamps))
+		for j, _ := range metricdata.Timestamps {
+			res[i].Values[j] = *metricdata.Values[j]
+			res[i].Timestamps[j] = *metricdata.Timestamps[j]
+		}
+	}
+	return res, nil 
+}
+
+func NewAws() *AwsMonitor {
+	var ec2MetricsJ, s3MetricsJ []AwsMetricJson
 	var instanceIds []string
-	var stat AWSStat
+	var stat AwsStat
 
 	utility.ImportJson(EC2MetricJsonPath, &ec2MetricsJ)
  	utility.ImportJson(EC2InstPath, &instanceIds)
@@ -157,5 +180,5 @@ func New() *AWSMonitor {
 
 	svc := cloudwatchClient(awsRegion)
 
-	return &AWSMonitor{svc, stat, metrics}
+	return &AwsMonitor{svc, stat, metrics}
 }

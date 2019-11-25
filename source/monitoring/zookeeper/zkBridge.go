@@ -23,19 +23,19 @@ func New(zkServerAddresses []string, sessionTimeout time.Duration,
 	var nodeExist bool		
 	conn, _, err = zk.Connect(zkServerAddresses, sessionTimeout)
 	if err != nil {
-		return &bridge, err
+		return &bridge, fmt.Errorf("Error in zkBridge Conn: %v", err)
 	}
 	bridge = ZookeeperBridge{conn, sessionTimeout, membershipNodePath, members, nil}
 
 	//Create root for membership if not exist
 	nodeExist, _, err = bridge.zkConn.Exists(membershipNodePath);
 	if err != nil {
-		return &bridge, err
+		return &bridge, fmt.Errorf("Error in zkBridge Exist: %v", err)
 	}
 	if !nodeExist {
 		_, err = bridge.zkConn.Create(membershipNodePath, nil, 0, zk.WorldACL(zk.PermAll))
 		if err != nil {
-			return &bridge, err
+			return &bridge, fmt.Errorf("Error in zkBridge Create: %v", err)
 		}
 	}
 	return &bridge, nil
@@ -46,24 +46,24 @@ func (bridge *ZookeeperBridge) RegisterMember(memberId string, memberInfo string
 	path := fmt.Sprintf("%s/%s", bridge.membershipNodePath, memberId)
 	_, err := bridge.zkConn.Create(path, []byte(memberInfo), zk.FlagEphemeral, zk.WorldACL(zk.PermAll))
 	if err != nil {
-		return err
+		return fmt.Errorf("Error in zkBridge RegisterMember Create: %v", err)
 	}
 	return nil
 }
 
 
-func (bridge *ZookeeperBridge) CheckMembers()  error {
+func (bridge *ZookeeperBridge) CheckMembersDead()  error {
 	//Wait changes in memebership nodes
 	_, _, watcher, err := bridge.zkConn.ChildrenW(bridge.membershipNodePath)
 	if  err != nil {
-		return err
+		return fmt.Errorf("Error in zkBridge ChildrenW: %v", err)
 	}
 	<-watcher
 
 	//Updates nodes dead
 	nodesAlive, _, err := bridge.zkConn.Children(bridge.membershipNodePath)
 	if  err != nil {
-		return err
+		return fmt.Errorf("Error in zkBridge Children: %v", err)
 	}
 	bridge.MembersDead = getMembersDead(nodesAlive, bridge.Members)
 	return nil

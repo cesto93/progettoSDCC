@@ -4,7 +4,6 @@ KEY_POS="/home/pier/Desktop/progetto_sdcc/myKey.pem"
 NAMES=( "master" "worker-1" "worker-2" "worker-3" )
 PORTS=( "1050" "1051" "1052" "1053" )
 
-
 #workers
 for (( i=1; i<${#NAMES[@]}; i++ ));
 do
