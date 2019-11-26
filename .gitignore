@@ -9,7 +9,5 @@
 /configuration/zk_servers_addrs.json
 
 #ingore script used for testing
-/script_aws/old
-/source/compile.sh
-/source/monitoring/get_inst.sh
-/EC2_inst.json
+/script_aws/test
+/compile.sh

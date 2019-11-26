@@ -54,17 +54,18 @@ func main() {
  	startTime, _ := time.Parse(time.RFC3339, "2019-11-09T00:00:00+00:00")
  	endTime, _ := time.Parse(time.RFC3339, "2019-11-09T00:10:00+00:00")
 
- 	
  	if (aws) {
  		monitorBridge = monitor.NewAws()
  		myRestarter = restarter.NewAws()
- 		utility.ImportJson(ec2InstPath, members)
- 		utility.ImportJson(zkServersIpPath, zkServerAddresses)
- 		zkServersIpPath = zkServersIpPath[0:3] //pick only 3 members for servers
  	} else {
  		//TODO insert google monitor here
  		return
  	}
+
+ 	//load zk conf
+ 	utility.ImportJson(ec2InstPath, members)
+ 	utility.ImportJson(zkServersIpPath, zkServerAddresses)
+ 	zkServerAddresses = zkServerAddresses[0:3] //pick only 3 members for servers
 
  	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, membershipNodePath, members)
  	utility.CheckError(err)

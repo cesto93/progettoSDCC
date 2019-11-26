@@ -14,6 +14,7 @@ func NewAws() *AwsRestarter {
 	return &AwsRestarter{ec2.New(session.New())}
 }
 
+//TODO implements state recovery / app restart of monitoring
 func (myRestarter *AwsRestarter) Restart(instanceId string) error {
 	input := &ec2.RebootInstancesInput{
     	InstanceIds: []*string{
