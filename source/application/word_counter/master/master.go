@@ -31,19 +31,19 @@ func readWordfilesFromS3(keys []string, bucketName string) []string {
 
 //ASYNC
 func callMapOnWorkers(texts []string, nodes []rpcUtils.Node) {
-	rpc_chan := make(chan *rpc.Call, len(nodes))
+	rpcChan := make(chan *rpc.Call, len(nodes))
 	for i := range texts {
 		client, err := rpc.DialHTTP("tcp", nodes[i % len(nodes)].Address + ":" + nodes[i % len(nodes)].Port)
 		if err != nil {
 			log.Fatal("Error in dialing: ", err)
 		}
 		defer client.Close()
-		client.Go("Worker.Map", texts[i], nil, rpc_chan)
+		client.Go("Worker.Map", texts[i], nil, rpcChan)
 	}
 	for i := range texts {
-		divCall := <-rpc_chan
+		divCall := <-rpcChan
 		if divCall.Error != nil {
-			log.Fatal("Error in rpc_Map num ", i % len(nodes), " :", divCall.Error.Error())
+			log.Fatal("Error in rpcMap num ", i % len(nodes), " :", divCall.Error.Error())
 		}
 	}
 }
@@ -51,7 +51,7 @@ func callMapOnWorkers(texts []string, nodes []rpcUtils.Node) {
 //ASYNC
 func callBarrierOnWorkers(nodes []rpcUtils.Node) {
 
-	rpc_chan := make(chan *rpc.Call, len(nodes))
+	rpcChan := make(chan *rpc.Call, len(nodes))
 	for i := range nodes {
 		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
 		if err != nil {
@@ -59,12 +59,12 @@ func callBarrierOnWorkers(nodes []rpcUtils.Node) {
 		}
 		defer client.Close()
 		state := true
-		client.Go("Worker.End_Map_Fase", state, nil, rpc_chan)
+		client.Go("Worker.EndMapFase", state, nil, rpcChan)
 	}
 	for i := range nodes {
-		divCall := <-rpc_chan
+		divCall := <-rpcChan
 		if divCall.Error != nil {
-			log.Fatal("Error in rpc_End_Map_Fase num ", i, " :", divCall.Error.Error())
+			log.Fatal("Error in rpcEndMapFase num ", i, " :", divCall.Error.Error())
 		}
 	}
 }
@@ -76,26 +76,26 @@ func callLoadTopologyOnWorker(topology []rpcUtils.Node, node rpcUtils.Node) {
 		log.Fatal("Error in dialing: ", err)
 	}
 	defer client.Close()
-	err = client.Call("Worker.Load_Topology", topology, nil)
+	err = client.Call("Worker.LoadTopology", topology, nil)
 	if err != nil {
-		log.Fatal("Error in rpc_Map: ", err)
+		log.Fatal("Error in rpcMap: ", err)
 	}
 }
 
 //SYNC
-func getResultsOnWorkers(nodes []rpcUtils.Node) []word_count_utils.WordCount {
-	var res []word_count_utils.WordCount
+func getResultsOnWorkers(nodes []rpcUtils.Node) []wordCountUtils.WordCount {
+	var res []wordCountUtils.WordCount
 	for i := range nodes {
 		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
 		if err != nil {
 			log.Fatal("Error in dialing: ", err)
 		}
 		defer client.Close()
-		var counted []word_count_utils.WordCount
+		var counted []wordCountUtils.WordCount
 		state := true
-		err = client.Call("Worker.Get_Results", state, &counted)
+		err = client.Call("Worker.GetResults", state, &counted)
 		if err != nil {
-			log.Fatal("Error in rpc_Map: ", err)
+			log.Fatal("Error in rpcMap: ", err)
 		}
 		//fmt.Println("words by reducer ", i, " = ", len(counted))
 		for j := range counted {
@@ -105,10 +105,10 @@ func getResultsOnWorkers(nodes []rpcUtils.Node) []word_count_utils.WordCount {
 	return res
 }
 
-func (t *Master) DoWordCount(word_files []string, res *[]word_count_utils.WordCount) error{
+func (t *Master) DoWordCount(wordFiles []string, res *[]wordCountUtils.WordCount) error{
 	fmt.Println("Request received")
 
-	s := readWordfilesFromS3(word_files, bucketName)
+	s := readWordfilesFromS3(wordFiles, bucketName)
 
 	for i := range nodes {
 		callLoadTopologyOnWorker(nodes, nodes[i])
@@ -129,7 +129,7 @@ func main() {
 	flag.StringVar(&masterPort, "masterPort", "1049", "The rpc port of the master for the client")
 	flag.StringVar(&bucketName, "bucketName", "cesto93", "The rpc port of the master for the client")
 	flag.Parse()
-	fmt.Println("Starting rpc service")
+	fmt.Println("Starting rpc service on Master node")
 	master := new(Master)
 	rpcUtils.ServRpc(masterPort, "Master", master)
 }

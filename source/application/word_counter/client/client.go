@@ -26,8 +26,8 @@ func putWordsToServer(bucketName string, names []string, paths []string){
 	}
 }
 
-func requestWordCount(wordFiles []string, node rpcUtils.Node) []word_count_utils.WordCount{
-	var res []word_count_utils.WordCount
+func requestWordCount(wordFiles []string, node rpcUtils.Node) []wordCountUtils.WordCount{
+	var res []wordCountUtils.WordCount
 	client, err := rpc.DialHTTP("tcp", node.Address + ":" + node.Port)
 	if err != nil {
 		log.Fatal("Error in dialing: ", err)

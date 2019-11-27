@@ -13,8 +13,8 @@ import (
 type Worker int
 
 var nodes []rpcUtils.Node
-var mapper_words []word_count_utils.WordCount
-var reducer_words []word_count_utils.WordCount
+var mapper_words []wordCountUtils.WordCount
+var reducer_words []wordCountUtils.WordCount
 var worker_state int
 var mux sync.Mutex
 
@@ -31,10 +31,10 @@ func reducerKey(word string, n_nodes int) int {
 	return res % n_nodes
 }
 
-func shaffleAndSort(words []word_count_utils.WordCount, n_nodes int) [][]word_count_utils.WordCount {
-	words_by_reducer := make([][]word_count_utils.WordCount, n_nodes)
+func shaffleAndSort(words []wordCountUtils.WordCount, n_nodes int) [][]wordCountUtils.WordCount {
+	words_by_reducer := make([][]wordCountUtils.WordCount, n_nodes)
 	for i := range words_by_reducer {
-		words_by_reducer[i] = make([]word_count_utils.WordCount, 0)
+		words_by_reducer[i] = make([]wordCountUtils.WordCount, 0)
 	}
 	for i := range words {
 		key := reducerKey(words[i].Word, n_nodes)
@@ -44,7 +44,7 @@ func shaffleAndSort(words []word_count_utils.WordCount, n_nodes int) [][]word_co
 }
 
 //ASYNC
-func callReduce(words []word_count_utils.WordCount, nodes []rpcUtils.Node) {
+func callReduce(words []wordCountUtils.WordCount, nodes []rpcUtils.Node) {
 	words_by_reducer := shaffleAndSort(words, len(nodes))
 	rpc_chan := make(chan *rpc.Call, len(nodes))
 	for i := range nodes {
@@ -65,7 +65,7 @@ func callReduce(words []word_count_utils.WordCount, nodes []rpcUtils.Node) {
 
 func (t *Worker) Map(text string, res *bool) error {
 	worker_state = State_Map
-	temp := word_count_utils.StringSplit(text)
+	temp := wordCountUtils.StringSplit(text)
 
 	mux.Lock()
 	if (mapper_words != nil) {
@@ -73,14 +73,14 @@ func (t *Worker) Map(text string, res *bool) error {
 			temp = append(temp, mapper_words[i])
 		}
 	}
-	mapper_words = word_count_utils.CountWords(temp) //We do a preliminary reduce
+	mapper_words = wordCountUtils.CountWords(temp) //We do a preliminary reduce
 	mux.Unlock()
 
 	*res = true
 	return nil
 }
 
-func (t *Worker) Reduce(words []word_count_utils.WordCount, res *bool) error {
+func (t *Worker) Reduce(words []wordCountUtils.WordCount, res *bool) error {
 	worker_state = State_Reducer
 
 	mux.Lock()
@@ -89,7 +89,7 @@ func (t *Worker) Reduce(words []word_count_utils.WordCount, res *bool) error {
 			words = append(words, reducer_words[i])
 		}
 	}
-	reducer_words = word_count_utils.CountWords(words)
+	reducer_words = wordCountUtils.CountWords(words)
 	mux.Unlock()
 
 	*res = true
@@ -115,7 +115,7 @@ func (t *Worker) LoadTopology(nodes_list []rpcUtils.Node, res *bool) error {
 	return nil
 }
 
-func (t *Worker) GetResults(state bool, res *[]word_count_utils.WordCount) error {
+func (t *Worker) GetResults(state bool, res *[]wordCountUtils.WordCount) error {
 	if worker_state == State_Reducer {
 		*res = reducer_words
 		worker_state = State_Idle
@@ -125,7 +125,7 @@ func (t *Worker) GetResults(state bool, res *[]word_count_utils.WordCount) error
 
 func main() {
 	port := os.Args[1]
-	fmt.Println("Starting rpc service")
+	fmt.Println("Starting rpc service on worker node")
 	worker := new(Worker)
 	rpcUtils.ServRpc(port, "Worker", worker)
 }

@@ -1,4 +1,4 @@
-package word_count_utils
+package wordCountUtils
 
 import(
 	"strings"
