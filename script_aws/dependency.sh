@@ -9,14 +9,18 @@ ZK_CLIENT_PORT=":2181"
 
 for (( i=0; i<${#NAMES[@]}; i++ ));
 do
-ID[$i]=$(aws ec2 describe-instances --filters Name=tag:Name,Values=$MASTER_NAME  --query 'Reservations[*].Instances[*].InstanceId')
+INSTANCES[$i]=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 
-INSTANCE_DNS[$i]=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${NAMES[$i]} --output text \
-		--query 'Reservations[*].Instances[*].PublicDnsName')
+INSTANCE_DNS[$i]=$(echo ${INSTANCES[$i]} | jq -r '.[].PublicDnsName')
+IP[$i]=$(echo ${INSTANCES[$i]} | jq  -r '.[].NetworkInterfaces[].Association.PublicIp')
 
-IP[$i]=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${NAMES[$i]} --output text \
-		--query 'Reservations[*].Instances[*].NetworkInterfaces[*].Association.PublicIp')
+ID_J[$i]=$(echo ${INSTANCES[$i]} | jq '[.[].InstanceId]')
+IP_J[$i]=$(echo ${INSTANCES[$i]} | jq '[.[].NetworkInterfaces[].Association.PublicIp]')
+
 done
+
+IDS_J=$(echo ${ID_J[@]} | jq -s 'add | flatten')
+IPS_J=$(echo ${IP_J[@]} | jq -s --arg port $ZK_CLIENT_PORT ' add |  flatten |[.[] + $port] ') 
 
 for (( i=0; i<${#NAMES[@]}; i++ ));
 do
@@ -25,14 +29,14 @@ echo -e "COPYING SSH KEY FOR GIT DEPLOYMENT TO ${INSTANCE_DNS[$i]} \n"
 scp  -q -o "StrictHostKeyChecking=no" -i $KEY_POS $LOCAL_DIR/$GIT_KEY_FILE  ec2-user@${INSTANCE_DNS[$i]}:$AWS_DIR
 scp -q -o "StrictHostKeyChecking=no" -i $KEY_POS $LOCAL_DIR/config  ec2-user@${INSTANCE_DNS[$i]}:$AWS_DIR
 
-echo -e "SSH CONNECTION TO ${NAMES[$i]}\n"
+echo -e "SSH CONNECTION TO ${NAMES[$i]} IP ${IP[$i]}\n"
 
 konsole --new-tab --noclose -e ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[$i]} "
 
 sudo yum update -y -q
 sudo yum install git -y -q -e 0
 sudo yum install golang -y -q -e 0
-sudo yum install jq -y -q -e 0
+#sudo yum install jq -y -q -e 0
 go get -u github.com/aws/aws-sdk-go
 go get -u github.com/samuel/go-zookeeper/zk
 
@@ -62,9 +66,8 @@ go build -o ./source/application/word_counter/master/master ./source/application
 go build -o ./source/monitoring/agent ./source/monitoring/agent.go
 
 #configuration of parameters
-echo ${ID[@]} | jq -s 'add | flatten' | tee ./configuration/ec2_inst.json
-echo ${IP[@]} | jq -s --arg port $ZK_CLIENT_PORT ' add |  flatten |[.[] + $port] ' | tee ./configuration/zk_servers_addrs.json
-
+echo '$IDS_J' | tee ./configuration/zk_agent.json
+echo '$IPS_J' | tee ./configuration/zk_servers_addrs.json
 " &
 
 done

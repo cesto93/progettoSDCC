@@ -6,3 +6,6 @@ ID2=$(aws ec2 describe-instances --filters Name=tag:Name,Values=$WORKER_NAMES --
 
 aws ec2 start-instances --instance-ids $ID1
 aws ec2 start-instances --instance-ids $ID2
+
+sleep 7
+source status_ec2.sh

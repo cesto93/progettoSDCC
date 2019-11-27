@@ -2,8 +2,13 @@ package restarter
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/aws/session"
+)
+
+const (
+	awsRegion = "us-east-1"
 )
 
 type AwsRestarter struct {
@@ -11,7 +16,8 @@ type AwsRestarter struct {
 }
 
 func NewAws() *AwsRestarter {
-	return &AwsRestarter{ec2.New(session.New())}
+	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(awsRegion), }))
+	return &AwsRestarter{ec2.New(sess)}
 }
 
 //TODO implements state recovery / app restart of monitoring

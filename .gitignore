@@ -5,8 +5,7 @@
 /source/monitoring/agent
 
 #ignore configuration files generated dinamically
-/configuration/ec2_inst.json
-/configuration/zk_servers_addrs.json
+/configuration/generated
 
 #ingore script used for testing
 /script_aws/test
