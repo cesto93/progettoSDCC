@@ -11,7 +11,7 @@ HDD="10GB"
 gcloud beta compute --project=$PROJ instances \
 create $1 --zone=$ZONE --machine-type=$MTYPE \
 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE \
---service-account=$SERV@$MTYPE.iam.gserviceaccount.com \
+--service-account=$SERV@$PROJ.iam.gserviceaccount.com \
 --scopes=https://www.googleapis.com/auth/cloud-platform --tags=http-server,https-server \
---image=debian-9-stretch-v20191014 --image-project=debian-cloud --boot-disk-size=$HDD \
+--image=debian-9-stretch-v20191115 --image-project=debian-cloud --boot-disk-size=$HDD \
 --boot-disk-type=pd-standard --boot-disk-device-name=$1 --reservation-affinity=any
