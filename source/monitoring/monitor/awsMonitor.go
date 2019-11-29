@@ -13,7 +13,7 @@ import (
 const (
  	awsRegion = "us-east-1"
  	EC2MetricJsonPath = "../../configuration/metrics_ec2.json"
- 	EC2InstPath = "../../configuration/ec2_inst.json"
+ 	EC2InstPath = "../../configuration/generated/ec2_inst.json"
  	S3MetricPath = "../../configuration/metrics_s3.json"
  	StatPath = "../../configuration/monitoring_stat.json"
  )

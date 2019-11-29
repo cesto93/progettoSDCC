@@ -1,0 +1,30 @@
+{
+  "servers_zk": {
+    "names": [
+      "master",
+      "worker-1",
+      "worker-2"
+    ],
+    "port_client": ":2181",
+    "ports_server": ":2888:3888"
+  },
+  "aws": [
+    {
+      "name": "master",
+      "monitored": ["master"]
+    },
+    {
+      "name": "worker-1",
+      "monitored": ["worker-1"]
+    },
+    {
+      "name": "worker-2",
+      "monitored": ["worker-2"]
+    },
+    {
+      "name": "worker-3",
+      "monitored": ["worker-3"]
+    }
+  ],
+  "gc": []
+}

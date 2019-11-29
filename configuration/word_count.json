@@ -1,34 +1,34 @@
 {
-"aws" :[
-  {
-    "name": "master",
-    "port": "1050"
-  },
-  {
-    "name": "worker-1",
-    "port": "1051"
-  },
-  {
-    "name": "worker-2",
-    "port": "1052"
-  },
-  {
-    "name": "worker-3",
-    "port": "1053"
-  }
-],
-"gc" :[
-  {
-    "name": "worker-4",
-    "port": "1051"
-  },
-  {
-    "name": "worker-5",
-    "port": "1052"
-  },
-  {
-    "name": "worker-6",
-    "port": "1053"
-  }
-]
+  "aws": [
+    {
+      "name": "master",
+      "port": "1050"
+    },
+    {
+      "name": "worker-1",
+      "port": "1051"
+    },
+    {
+      "name": "worker-2",
+      "port": "1052"
+    },
+    {
+      "name": "worker-3",
+      "port": "1053"
+    }
+  ],
+  "gc": [
+    {
+      "name": "worker-4",
+      "port": "1054"
+    },
+    {
+      "name": "worker-5",
+      "port": "1055"
+    },
+    {
+      "name": "worker-6",
+      "port": "1056"
+    }
+  ]
 }

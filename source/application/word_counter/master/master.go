@@ -8,12 +8,22 @@ import (
 	"progettoSDCC/source/application/word_counter/storage"
 	"progettoSDCC/source/application/word_counter/rpcUtils"
 	"progettoSDCC/source/application/word_counter/wordCountUtils"
+	"progettoSDCC/source/utility"
 )
 
 type Master int
 
-var nodes rpcUtils.NodeList
+type NodeConfiguration struct {
+	MasterPort string
+	Workers []rpcUtils.Node
+}
+
+var nodeConf NodeConfiguration
 var bucketName string
+
+const (
+	nodesJsonPath = "../../../../configuration/generated/app_node.json"
+)
 
 func readWordfilesFromS3(keys []string, bucketName string) []string {
 	var texts []string
@@ -107,6 +117,7 @@ func getResultsOnWorkers(nodes []rpcUtils.Node) []wordCountUtils.WordCount {
 
 func (t *Master) DoWordCount(wordFiles []string, res *[]wordCountUtils.WordCount) error{
 	fmt.Println("Request received")
+	nodes := nodeConf.Workers
 
 	s := readWordfilesFromS3(wordFiles, bucketName)
 
@@ -123,13 +134,14 @@ func (t *Master) DoWordCount(wordFiles []string, res *[]wordCountUtils.WordCount
 }
 
 func main() {
-	var masterPort string
 
-	flag.Var(&nodes, "workerAddr", "The list of worker with it's rpc coordinate")
-	flag.StringVar(&masterPort, "masterPort", "1049", "The rpc port of the master for the client")
+	//flag.Var(&nodes, "workerAddr", "The list of worker with it's rpc coordinate")
+	//flag.StringVar(&masterPort, "masterPort", "1049", "The rpc port of the master for the client")
+	utility.ImportJson(nodesJsonPath, &nodeConf)
+
 	flag.StringVar(&bucketName, "bucketName", "cesto93", "The rpc port of the master for the client")
 	flag.Parse()
-	fmt.Println("Starting rpc service on Master node")
+	fmt.Println("Starting rpc service on Master node on port " + nodeConf.MasterPort)
 	master := new(Master)
-	rpcUtils.ServRpc(masterPort, "Master", master)
+	rpcUtils.ServRpc(nodeConf.MasterPort, "Master", master)
 }

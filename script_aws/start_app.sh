@@ -4,9 +4,6 @@ KEY_POS="/home/pier/Desktop/progetto_sdcc/myKey.pem"
 CONF=$(<../configuration/word_count.json)
 GC_ADDR_J=$(<../configuration/generated/gc_workers.json)
 
-#NAMES=( "master" "worker-1" "worker-2" "worker-3" )
-#PORTS=( "1050" "1051" "1052" "1053" )
-
 #importing configuration
 NAMES=( $(echo $CONF | jq -r '.aws[].name') )
 PORTS=( $(echo $CONF | jq -r '.aws[].port') )
@@ -17,7 +14,6 @@ do
 INSTANCES[$i]=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 INSTANCE_DNS=$(echo ${INSTANCES[$i]} | jq -r '.[].PublicDnsName')
 IP[$i]=$(echo ${INSTANCES[$i]} | jq  -r '.[].NetworkInterfaces[].Association.PublicIp')
-#addresses[$i]="${IP[$i]}:${PORTS[$i]}"
 
 konsole --new-tab --noclose -e ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@$INSTANCE_DNS \
 "./go/src/progettoSDCC/source/application/word_counter/worker/worker ${PORTS[$i]}" &
@@ -29,11 +25,9 @@ do
 AWS_ADDR=$(echo $AWS_ADDR,${IP[$i]}":"${PORTS[$i]})
 done
 
-#importing json dynamic data for gc
+#TODO import json dynamic data for gc
 #AWS_ADDR_J="[$AWS_ADDR]"
 #ADDR_J=$(echo $AWS_ADDR_J $GC_ADDR_J | jq -s -r 'add | flatten')
-
-#echo $AWS_ADDR
 
 #master 
 #TODO this should have addresses of google cloud by using common generated data

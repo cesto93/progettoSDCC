@@ -12,8 +12,8 @@ import (
  )
 
  const (
- 	zkServersIpPath = "../../configuration/zk_servers_addrs.json"
- 	zkAgentPath = "../../configuration/zk_agent.json"
+ 	zkServersIpPath = "../../configuration/generated/zk_servers_addrs.json"
+ 	zkAgentPath = "../../configuration/generated/zk_agent.json"
  	membershipNodePath = "/membership"
  	sessionTimeout = 10
  	monitorInterval = 300
