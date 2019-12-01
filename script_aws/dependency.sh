@@ -21,14 +21,10 @@ sudo yum install golang -y -q -e 0
 go get -u github.com/aws/aws-sdk-go
 go get -u github.com/samuel/go-zookeeper/zk
 
-#project conf
+#project download
 cd ./go/src
 sudo rm -rf progettoSDCC
 git clone git@github.com:cesto93/progettoSDCC
-cd ./progettoSDCC
-go build -o ./source/application/word_counter/worker/worker ./source/application/word_counter/worker/worker.go
-go build -o ./source/application/word_counter/master/master ./source/application/word_counter/master/master.go
-go build -o ./source/monitoring/agent ./source/monitoring/agent.go
 echo 'finished installing' 
 " &
 done
@@ -39,7 +35,7 @@ do
 	INST_DNS_SRV[$i]=$(echo $INST | jq -r '.[].PublicDnsName')
 	konsole --new-tab --noclose -e ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS_SRV[$i]} \
 "
-#zookeeper configuration
+#zookeeper intall
 sudo yum install java-1.8.0-openjdk -y -q
 sudo wget -q -nc https://www-us.apache.org/dist/zookeeper/zookeeper-3.5.6/apache-zookeeper-3.5.6-bin.tar.gz
 sudo tar -xzf  apache-zookeeper-3.5.6-bin.tar.gz
@@ -48,4 +44,5 @@ echo 'finished installing zk_server'
 " &
 done
 
-source ./configure.sh
+source ./configure_monitor.sh
+source ./configure_app.sh

@@ -13,16 +13,11 @@ import (
 
 type Master int
 
-type NodeConfiguration struct {
-	MasterPort string
-	Workers []rpcUtils.Node
-}
-
-var nodeConf NodeConfiguration
+var nodeConf rpcUtils.NodeConfiguration
 var bucketName string
 
 const (
-	nodesJsonPath = "../../../../configuration/generated/app_node.json"
+	nodesJsonPath = "../configuration/generated/app_node.json"
 )
 
 func readWordfilesFromS3(keys []string, bucketName string) []string {

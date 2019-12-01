@@ -6,8 +6,10 @@ import (
 	"os"
 	"sync"
 	"fmt"
+	"strconv"
 	"progettoSDCC/source/application/word_counter/wordCountUtils"
 	"progettoSDCC/source/application/word_counter/rpcUtils"
+	"progettoSDCC/source/utility"
 )
 
 type Worker int
@@ -18,9 +20,12 @@ var reducer_words []wordCountUtils.WordCount
 var worker_state int
 var mux sync.Mutex
 
-const State_Idle = 0
-const State_Map = 1
-const State_Reducer = 2
+const (
+	State_Idle = 0
+	State_Map = 1
+	State_Reducer = 2
+	nodesJsonPath = "../configuration/generated/app_node.json"
+)
 
 func reducerKey(word string, n_nodes int) int {
 	res := 0
@@ -124,8 +129,11 @@ func (t *Worker) GetResults(state bool, res *[]wordCountUtils.WordCount) error {
 }
 
 func main() {
-	port := os.Args[1]
-	fmt.Println("Starting rpc service on worker node")
+	var nodeConf rpcUtils.NodeConfiguration
+	index, err := strconv.Atoi(os.Args[1])
+	utility.CheckError(err)
+	utility.ImportJson(nodesJsonPath, &nodeConf)
+	fmt.Println("Starting rpc service on worker node at port " + nodeConf.Workers[index].Port)
 	worker := new(Worker)
-	rpcUtils.ServRpc(port, "Worker", worker)
+	rpcUtils.ServRpc(nodeConf.Workers[index].Port, "Worker", worker)
 }

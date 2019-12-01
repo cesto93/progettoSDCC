@@ -7,5 +7,6 @@ ID2=$(aws ec2 describe-instances --filters Name=tag:Name,Values=$WORKER_NAMES --
 aws ec2 start-instances --instance-ids $ID1
 aws ec2 start-instances --instance-ids $ID2
 
-sleep 10
+echo "Waiting 15 seconds for the instance to start"
+sleep 15
 source status_ec2.sh

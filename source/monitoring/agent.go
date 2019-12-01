@@ -12,11 +12,16 @@ import (
  )
 
  const (
- 	zkServersIpPath = "../../configuration/generated/zk_servers_addrs.json"
- 	zkAgentPath = "../../configuration/generated/zk_agent.json"
- 	membershipNodePath = "/membership"
  	sessionTimeout = 10
  	monitorInterval = 300
+ 	zkServersIpPath = "../configuration/generated/zk_servers_addrs.json"
+ 	zkAgentPath = "../configuration/generated/zk_agent.json"
+ 	membershipNodePath = "/membership"
+
+ 	EC2MetricJsonPath = "../configuration/metrics_ec2.json"
+ 	EC2InstPath = "../configuration/generated/ec2_inst.json"
+ 	S3MetricPath = "../configuration/metrics_s3.json"
+ 	StatPath = "../configuration/monitoring_stat.json"
  )
 
  func saveMetrics(monitorBridge monitor.MonitorBridge) {
@@ -44,7 +49,7 @@ import (
 
 func main() {
 	var zkServerAddresses, members []string
-	//var monitorBridge monitor.MonitorBridge
+	var monitorBridge monitor.MonitorBridge
 	var myRestarter restarter.Restarter
 	var aws bool
 
@@ -57,7 +62,7 @@ func main() {
  	endTime, _ := time.Parse(time.RFC3339, "2019-11-09T00:10:00+00:00")*/
 
  	if (aws) {
- 		//monitorBridge = monitor.NewAws()
+ 		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, StatPath)
  		myRestarter = restarter.NewAws()
  	} else {
  		//TODO insert google monitor here
@@ -65,15 +70,18 @@ func main() {
  	}
 
  	//load zk conf
- 	utility.ImportJson(zkAgentPath, &members)
- 	utility.ImportJson(zkServersIpPath, &zkServerAddresses)
+ 	err := utility.ImportJson(zkAgentPath, &members)
+ 	utility.CheckError(err)
+ 	err = utility.ImportJson(zkServersIpPath, &zkServerAddresses)
+ 	utility.CheckError(err)
+
 
  	//less than 3 servers dosen't make zookeeper fault tolerant
  	if len(zkServerAddresses) > 3 {
  		zkServerAddresses = zkServerAddresses[0:3] //pick only 3 members for servers
  	}
 
- 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, membershipNodePath, members)
+ 	zkBridge, err = zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, membershipNodePath, members)
  	utility.CheckError(err)
  	err = zkBridge.RegisterMember("prova", "info")
  	go checkMembersDead(zkBridge)
@@ -90,6 +98,6 @@ func main() {
 				fmt.Println("Someone is dead!")
 			}
 		}
-		//saveMetrics(monitorBridge)
+		saveMetrics(monitorBridge)
 	}
  }

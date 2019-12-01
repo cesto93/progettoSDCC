@@ -1,12 +1,12 @@
-#ignore executable files
-/source/application/word_counter/worker/worker
-/source/application/word_counter/master/master
-/source/application/word_counter/client/client
-/source/monitoring/agent
-
 #ignore configuration files generated dinamically
 /configuration/generated
 
-#ingore script used for testing
+#ignore script used for testing
 /script_aws/test
 /compile.sh
+
+#ignore bin folder
+/bin
+
+#ignore test folder
+/test

@@ -20,5 +20,9 @@ for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
 do
 	INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${MONITOR_NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 	INST_DNS=$(echo $INST | jq -r '.[].PublicDnsName')
-	konsole --new-tab --noclose -e ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@$INST_DNS "./go/src/progettoSDCC/source/monitoring/agent -aws" &
+	konsole --new-tab --noclose -e ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@$INST_DNS \
+"
+cd ./go/src/progettoSDCC/bin
+./agent -aws
+" &
 done

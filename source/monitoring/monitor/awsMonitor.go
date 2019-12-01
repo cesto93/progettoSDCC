@@ -12,10 +12,6 @@ import (
 
 const (
  	awsRegion = "us-east-1"
- 	EC2MetricJsonPath = "../../configuration/metrics_ec2.json"
- 	EC2InstPath = "../../configuration/generated/ec2_inst.json"
- 	S3MetricPath = "../../configuration/metrics_s3.json"
- 	StatPath = "../../configuration/monitoring_stat.json"
  )
 
 type AwsMonitor struct {
@@ -162,15 +158,15 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	return res, nil 
 }
 
-func NewAws() *AwsMonitor {
+func NewAws(ec2MetricJsonPath, ec2InstPath, s3MetricPath, statPath string) *AwsMonitor {
 	var ec2MetricsJ, s3MetricsJ []AwsMetricJson
 	var instanceIds []string
 	var stat AwsStat
 
-	utility.ImportJson(EC2MetricJsonPath, &ec2MetricsJ)
- 	utility.ImportJson(EC2InstPath, &instanceIds)
- 	utility.ImportJson(S3MetricPath, &s3MetricsJ)
- 	utility.ImportJson(StatPath, &stat)
+	utility.ImportJson(ec2MetricJsonPath, &ec2MetricsJ)
+ 	utility.ImportJson(ec2InstPath, &instanceIds)
+ 	utility.ImportJson(s3MetricPath, &s3MetricsJ)
+ 	utility.ImportJson(statPath, &stat)
 
  	ec2Metrics, _ := importMetrics(ec2MetricsJ)
  	s3Metrics, s3Dim := importMetrics(s3MetricsJ)
