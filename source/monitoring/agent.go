@@ -25,8 +25,8 @@ import (
  )
 
  func saveMetrics(monitorBridge monitor.MonitorBridge) {
- 	start := time.Now()
- 	end := start.Add(time.Second * monitorInterval) 
+ 	end := time.Now()
+ 	start := end.Add(-time.Second * monitorInterval) 
  	ec2Data, err := monitorBridge.GetMetrics(start, end)
  	utility.CheckError(err)
  	printMetrics(ec2Data)
@@ -55,7 +55,7 @@ func main() {
 	var index int
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
-	flag.IntVar(&index, "index", 1234, "Specify the index of the agent")
+	flag.IntVar(&index, "index", 0, "Specify the index of the agent")
 	flag.Parse()
 
  	/*startTime, _ := time.Parse(time.RFC3339, "2019-11-09T15:35:00+02:00")
@@ -94,7 +94,7 @@ func main() {
 		if zkBridge.MembersDead != nil {
 			for _, dead := range zkBridge.MembersDead {
 				myRestarter.Restart(dead)
-				fmt.Println("Someone is dead!")
+				fmt.Println("This is is dead: " + dead)
 			}
 		}
 		saveMetrics(monitorBridge)

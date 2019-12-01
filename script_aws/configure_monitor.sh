@@ -34,6 +34,7 @@ done
 IDS_MONITOR_J=$(echo ${ID_MONITOR_J[@]} | jq -s 'add | flatten')
 ZK_SRV_IPS_J=$(echo ${ZK_SRV_IP_J[@]} | jq -s --arg port ":$ZK_CLIENT_PORT" ' add |  flatten |[.[] + $port] ') 
 
+#configuration of json parameters and project pull and compile
 for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
 do
 	MONITORED_NAMES=( $(echo $CONF | jq -r --argjson index $i '.aws[$index].monitored[]') )
@@ -48,7 +49,6 @@ cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/agent ./source/monitoring/agent.go
 
-#configuration of parameters
 mkdir -p ./configuration/generated
 echo '$IDS_MONITOR_J' | tee ./configuration/generated/zk_agent.json
 echo '$ZK_SRV_IPS_J' | tee ./configuration/generated/zk_servers_addrs.json
