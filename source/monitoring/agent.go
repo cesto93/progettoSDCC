@@ -24,9 +24,9 @@ import (
  	StatPath = "../configuration/monitoring_stat.json"
  )
 
- func saveMetrics(monitorBridge monitor.MonitorBridge) {
+ func saveMetrics(monitorBridge monitor.MonitorBridge, interval time.Duration) {
  	end := time.Now()
- 	start := end.Add(-time.Second * monitorInterval) 
+ 	start := end.Add(-interval) 
  	ec2Data, err := monitorBridge.GetMetrics(start, end)
  	utility.CheckError(err)
  	printMetrics(ec2Data)
@@ -98,6 +98,6 @@ func main() {
 				fmt.Println("This is is dead: " + dead)
 			}
 		}
-		saveMetrics(monitorBridge)
+		saveMetrics(monitorBridge, monitorInterval * time.Second)
 	}
  }
