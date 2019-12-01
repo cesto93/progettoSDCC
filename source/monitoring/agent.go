@@ -39,6 +39,7 @@ import (
  }
 
  func printMetrics(results []monitor.MetricData) {
+ 	fmt.Println("Metrics:\n")
 	for _, metricdata := range results {
 		fmt.Println(metricdata.Label)
 		for j, _ := range metricdata.Timestamps {
@@ -99,7 +100,7 @@ func main() {
 				fmt.Println("This is is dead: " + dead)
 			}
 		}
-		saveMetrics(monitorBridge, monitorInterval)
-		time.Sleep(monitorInterval)
+		time.AfterFunc(monitorInterval, func() { saveMetrics(monitorBridge, monitorInterval) })
+		time.Sleep(time.Second)
 	}
  }

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 KEY_POS="/home/pier/Desktop/progetto_sdcc/myKey.pem"
+CONF_MONITOR=$(<../configuration/monitor.json)
 
 #importing configuration
-CONF_MONITOR=$(<../configuration/monitor.json)
 ZK_SRV_NAMES=( $(echo $CONF_MONITOR | jq -r '.servers_zk.names[]') )
 MONITOR_NAMES=( $(echo $CONF_MONITOR | jq -r '.aws[].name') )
 ZK_CLIENT_PORT=$(echo $CONF_MONITOR | jq -r '.servers_zk.port_client')
