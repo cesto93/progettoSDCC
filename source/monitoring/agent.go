@@ -75,13 +75,10 @@ func main() {
  	err = utility.ImportJson(zkServersIpPath, &zkServerAddresses)
  	utility.CheckError(err)
 
-
+ 	fmt.Println(zkServerAddresses)
  	//less than 3 servers dosen't make zookeeper fault tolerant
- 	if len(zkServerAddresses) > 3 {
- 		zkServerAddresses = zkServerAddresses[0:3] //pick only 3 members for servers
- 	}
 
- 	zkBridge, err = zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, membershipNodePath, members)
+ 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, membershipNodePath, members)
  	utility.CheckError(err)
  	err = zkBridge.RegisterMember("prova", "info")
  	go checkMembersDead(zkBridge)
