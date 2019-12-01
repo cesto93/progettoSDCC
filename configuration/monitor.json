@@ -5,7 +5,7 @@
       "worker-1",
       "worker-2"
     ],
-    "port_client": ":2181",
+    "port_client": "2181",
     "ports_server": ":2888:3888"
   },
   "aws": [

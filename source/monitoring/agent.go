@@ -52,8 +52,10 @@ func main() {
 	var monitorBridge monitor.MonitorBridge
 	var myRestarter restarter.Restarter
 	var aws bool
+	var index int
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
+	flag.IntVar(&index, "index", 1234, "Specify the index of the agent")
 	flag.Parse()
 
  	/*startTime, _ := time.Parse(time.RFC3339, "2019-11-09T15:35:00+02:00")
@@ -80,7 +82,7 @@ func main() {
 
  	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, membershipNodePath, members)
  	utility.CheckError(err)
- 	err = zkBridge.RegisterMember("prova", "info")
+ 	err = zkBridge.RegisterMember(members[index], "info")
  	go checkMembersDead(zkBridge)
  	utility.CheckError(err)
 
