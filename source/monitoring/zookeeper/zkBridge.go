@@ -73,7 +73,7 @@ func getMembersDead(nodesAlive []string, nodes []string) []string {
 	var dead []string 
 	var i,j int
 	for i, _ = range  nodes {
-		for j, _ = range nodesAlive {
+		for j = 0; j < len(nodesAlive); j++ { //DON'T SUBSTITUTE WITH RANGE OR IT WILL NOT WORK
 			if nodes[i] == nodesAlive[j] {
 				break
 			}

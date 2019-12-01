@@ -92,6 +92,9 @@ func main() {
 	printMetrics(ec2Data)*/
 
 	monitorInterval := monitorIntervalSeconds * time.Second
+	now := time.Now()
+	saveMetrics(monitorBridge, monitorInterval)
+	nextMeasure := time.Now()
 	for {
 		if zkBridge.MembersDead != nil {
 			for _, dead := range zkBridge.MembersDead {
@@ -100,7 +103,10 @@ func main() {
 				fmt.Println("This is is dead: " + dead)
 			}
 		}
-		time.AfterFunc(monitorInterval, func() { saveMetrics(monitorBridge, monitorInterval) })
+		if (now.After(nextMeasure)) {
+			saveMetrics(monitorBridge, monitorInterval)
+		}
 		time.Sleep(time.Second)
+
 	}
  }
