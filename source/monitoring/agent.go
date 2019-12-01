@@ -96,17 +96,16 @@ func main() {
 	saveMetrics(monitorBridge, monitorInterval)
 	nextMeasure := time.Now()
 	for {
+		time.Sleep(time.Second)
 		if zkBridge.MembersDead != nil {
 			for _, dead := range zkBridge.MembersDead {
+				fmt.Println("This is is dead: " + dead)
 				err = myRestarter.Restart(dead)
 				utility.CheckError(err)
-				fmt.Println("This is is dead: " + dead)
 			}
 		}
 		if (now.After(nextMeasure)) {
 			saveMetrics(monitorBridge, monitorInterval)
 		}
-		time.Sleep(time.Second)
-
 	}
  }
