@@ -3,16 +3,14 @@
 KEY_POS="/home/pier/Desktop/progetto_sdcc/myKey.pem"
 
 #importing configuration
-
-#monitor
 CONF_MONITOR=$(<../configuration/monitor.json)
 ZK_SRV_NAMES=( $(echo $CONF_MONITOR | jq -r '.servers_zk.names[]') )
 MONITOR_NAMES=( $(echo $CONF_MONITOR | jq -r '.aws[].name') )
 ZK_CLIENT_PORT=$(echo $CONF_MONITOR | jq -r '.servers_zk.port_client')
 ZK_SERVER_PORTS=$(echo $CONF_MONITOR | jq -r '.servers_zk.ports_server')
 
-declare -A ID_MAP_J
 #getting instance DNS and ID
+declare -A ID_MAP_J
 for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
 do
 	INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${MONITOR_NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')

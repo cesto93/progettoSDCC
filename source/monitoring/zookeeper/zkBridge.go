@@ -78,7 +78,7 @@ func getMembersDead(nodesAlive []string, nodes []string) []string {
 				break
 			}
 		}
-		if j != len(nodesAlive) {
+		if j == len(nodesAlive) {
 			dead = append(dead, nodes[i])
 		}
 	}

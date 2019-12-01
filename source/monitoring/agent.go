@@ -93,7 +93,8 @@ func main() {
 	for {
 		if zkBridge.MembersDead != nil {
 			for _, dead := range zkBridge.MembersDead {
-				myRestarter.Restart(dead)
+				err = myRestarter.Restart(dead)
+				utility.CheckError(err)
 				fmt.Println("This is is dead: " + dead)
 			}
 		}
