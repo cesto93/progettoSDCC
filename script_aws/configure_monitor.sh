@@ -35,24 +35,23 @@ ZK_SRV_IPS_J=$(echo ${ZK_SRV_IP_J[@]} | jq -s --arg port ":$ZK_CLIENT_PORT" ' ad
 #configuration of json parameters and project pull and compile
 for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
 do
-	MONITORED_NAMES=( $(echo $CONF | jq -r --argjson index $i '.aws[$index].monitored[]') )
+	MONITORED_NAMES=( $(echo $CONF_MONITOR | jq -r --argjson index "$i" '.aws[$index].monitored[]') )
 	for (( j=0; j<${#MONITORED_NAMES[@]}; j++ ));
 	do
 		ID_MONITORED_J[$j]=$(echo ${ID_MAP_J[${MONITORED_NAMES[$j]}]} | jq -s '.[]' )
 	done
 	ID_MONITORED_M_J=$(echo ${ID_MONITORED_J[@]} | jq -s 'add')
-	konsole --new-tab --noclose -e ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS[$i]} \
+	ssh  -q -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS[$i]} \
 "
 cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/agent ./source/monitoring/agent.go
 
-mkdir -p ./configuration/generated
 echo '$IDS_MONITOR_J' | tee ./configuration/generated/zk_agent.json
 echo '$ZK_SRV_IPS_J' | tee ./configuration/generated/zk_servers_addrs.json
 echo '$ID_MONITORED_M_J' | tee ./configuration/generated/ec2_inst.json
 echo 'finished ${MONITOR_NAMES[$i]}' 
-" &
+"
 done
 
 #zookeeper server conf file
@@ -60,7 +59,7 @@ MYID=0
 for (( i=0; i<${#ZK_SRV_NAMES[@]}; i++ ));
 do
 	((MYID++))
-	ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS_SRV[$i]} \
+	ssh  -q -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS_SRV[$i]} \
 "
 echo 'tickTime=250
 initLimit=10

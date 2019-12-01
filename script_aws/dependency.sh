@@ -25,6 +25,7 @@ go get -u github.com/samuel/go-zookeeper/zk
 cd ./go/src
 sudo rm -rf progettoSDCC
 git clone git@github.com:cesto93/progettoSDCC
+mkdir -p ./configuration/generated
 echo 'finished installing' 
 " &
 done

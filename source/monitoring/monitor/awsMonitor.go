@@ -147,12 +147,14 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	}
 	
 	for i, metricdata := range awsRes {
-		res[i].Label = *metricdata.Label
-		res[i].Values = make([]float64, len(metricdata.Timestamps))
-		res[i].Timestamps = make([]time.Time, len(metricdata.Timestamps))
-		for j, _ := range metricdata.Timestamps {
-			res[i].Values[j] = *metricdata.Values[j]
-			res[i].Timestamps[j] = *metricdata.Timestamps[j]
+		if len(metricdata.Values) != 0 { 
+			res[i].Label = *metricdata.Label
+			res[i].Values = make([]float64, len(metricdata.Timestamps))
+			res[i].Timestamps = make([]time.Time, len(metricdata.Timestamps))
+			for j, _ := range metricdata.Values {
+				res[i].Values[j] = *metricdata.Values[j]
+				res[i].Timestamps[j] = *metricdata.Timestamps[j]
+			}
 		}
 	}
 	return res, nil 

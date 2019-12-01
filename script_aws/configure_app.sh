@@ -30,7 +30,6 @@ konsole --new-tab --noclose -e ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" e
 cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
-mkdir -p ./configuration/generated
 echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 " &
 done
@@ -45,7 +44,6 @@ konsole --new-tab --noclose -e ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" 
 cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC
 go build -o ./bin/master ./source/application/word_counter/master/master.go
-mkdir -p ./configuration/generated
 echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 " &
 
