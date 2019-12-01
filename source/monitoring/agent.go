@@ -13,7 +13,7 @@ import (
 
  const (
  	sessionTimeout = 10
- 	monitorInterval = 300
+ 	monitorIntervalSeconds = 300
  	zkServersIpPath = "../configuration/generated/zk_servers_addrs.json"
  	zkAgentPath = "../configuration/generated/zk_agent.json"
  	membershipNodePath = "/membership"
@@ -90,6 +90,7 @@ func main() {
 	utility.CheckError(err)
 	printMetrics(ec2Data)*/
 
+	monitorInterval := monitorIntervalSeconds * time.Second
 	for {
 		if zkBridge.MembersDead != nil {
 			for _, dead := range zkBridge.MembersDead {
@@ -98,6 +99,7 @@ func main() {
 				fmt.Println("This is is dead: " + dead)
 			}
 		}
-		saveMetrics(monitorBridge, monitorInterval * time.Second)
+		saveMetrics(monitorBridge, monitorInterval)
+		time.Sleep(monitorInterval)
 	}
  }
