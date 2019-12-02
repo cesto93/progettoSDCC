@@ -17,7 +17,6 @@ import (
  	zkServersIpPath = "../configuration/generated/zk_servers_addrs.json"
  	zkAgentPath = "../configuration/generated/zk_agent.json"
  	aliveNodePath = "/alive"
- 	startingNodePath = "/starting"
 
  	EC2MetricJsonPath = "../configuration/metrics_ec2.json"
  	EC2InstPath = "../configuration/generated/ec2_inst.json"
@@ -33,9 +32,9 @@ import (
  	printMetrics(ec2Data)
  }
 
- func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge) {
+ func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge, id string) {
  	for {
- 		zkBridge.CheckMembersDead()
+ 		zkBridge.CheckMemberDead(id)
  	}
  }
 
@@ -54,7 +53,7 @@ func main() {
 	var monitorBridge monitor.MonitorBridge
 	var myRestarter restarter.Restarter
 	var aws bool
-	var index int
+	var index, next int
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
 	flag.IntVar(&index, "index", 0, "Specify the index of the agent")
@@ -78,15 +77,15 @@ func main() {
  	utility.CheckError(err)
  	err = utility.ImportJson(zkServersIpPath, &zkServerAddresses)
  	utility.CheckError(err)
+ 	next = (index + 1) % len(members)
 
  	fmt.Println(zkServerAddresses)
  	//less than 3 servers dosen't make zookeeper fault tolerant
 
- 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath, startingNodePath,
- 									 members)
+ 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath, members)
  	utility.CheckError(err)
  	err = zkBridge.RegisterMember(members[index], "info")
- 	go checkMembersDead(zkBridge)
+ 	go checkMembersDead(zkBridge, members[next])
  	utility.CheckError(err)
 
 	/*ec2Data, err := monitorBridge.GetMetrics(startTime, endTime)
@@ -99,14 +98,11 @@ func main() {
 	nextMeasure := time.Now()
 	for {
 		time.Sleep(time.Second)
-		if zkBridge.MembersDead != nil {
-			for _, dead := range zkBridge.MembersDead {
-				fmt.Println("This is is dead: " + dead + "\n")
-				err = myRestarter.Restart(dead)
-				fmt.Println(err)
-				zkBridge.MemberIsStarting(dead, time.Now().String())
-				//utility.CheckError(err)
-			}
+		if zkBridge.IsDead != false {
+			fmt.Println("This is is dead: " + members[next] + "\n")
+			err = myRestarter.Restart(members[next])
+			fmt.Println(err)
+			//utility.CheckError(err)
 		}
 		if (now.After(nextMeasure)) {
 			saveMetrics(monitorBridge, monitorInterval)
