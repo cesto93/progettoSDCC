@@ -24,6 +24,6 @@ do
 "
 echo 'This is ${MONITOR_NAMES[$i]}'
 cd ./go/src/progettoSDCC/bin
-./agent -aws -index $i
+./agent -aws
 " &
 done

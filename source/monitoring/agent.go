@@ -16,6 +16,7 @@ import (
  	monitorIntervalSeconds = 300
  	zkServersIpPath = "../configuration/generated/zk_servers_addrs.json"
  	zkAgentPath = "../configuration/generated/zk_agent.json"
+ 	idMonitorPath = "../configuration/generated/id_monitor.json"
  	aliveNodePath = "/alive"
 
  	EC2MetricJsonPath = "../configuration/metrics_ec2.json"
@@ -56,7 +57,6 @@ func main() {
 	var index, next int
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
-	flag.IntVar(&index, "index", 0, "Specify the index of the agent")
 	flag.Parse()
 
  	/*startTime, _ := time.Parse(time.RFC3339, "2019-11-09T15:35:00+02:00")
@@ -77,6 +77,8 @@ func main() {
  	utility.CheckError(err)
  	err = utility.ImportJson(zkServersIpPath, &zkServerAddresses)
  	utility.CheckError(err)
+ 	err = utility.ImportJson(idMonitorPath, &index)
+ 	utility.CheckError(err)
  	next = (index + 1) % len(members)
 
  	fmt.Println(zkServerAddresses)
@@ -87,10 +89,6 @@ func main() {
  	err = zkBridge.RegisterMember(members[index], "info")
  	go checkMembersDead(zkBridge, members[next])
  	utility.CheckError(err)
-
-	/*ec2Data, err := monitorBridge.GetMetrics(startTime, endTime)
-	utility.CheckError(err)
-	printMetrics(ec2Data)*/
 
 	monitorInterval := monitorIntervalSeconds * time.Second
 	now := time.Now()

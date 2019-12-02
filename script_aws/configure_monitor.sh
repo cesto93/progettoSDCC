@@ -22,8 +22,6 @@ done
 for (( i=0; i<${#ZK_SRV_NAMES[@]}; i++ ));
 do
 	INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${ZK_SRV_NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
-	#ZK_SRV_IP[$i]=$(echo $INST | jq  -r '.[].NetworkInterfaces[].Association.PublicIp')
-	#ZK_SRV_IP_J[$i]=$(echo $INST | jq '[.[].NetworkInterfaces[].Association.PublicIp]')
 	ZK_SRV_IP[$i]=$(echo $INST | jq  -r '.[].NetworkInterfaces[].PrivateIpAddress')
 	ZK_SRV_IP_J[$i]=$(echo $INST | jq '[.[].NetworkInterfaces[].PrivateIpAddress]')
 	INST_DNS_SRV[$i]=$(echo $INST | jq -r '.[].PublicDnsName')
@@ -50,9 +48,10 @@ go build -o ./bin/agent ./source/monitoring/agent.go
 echo '$IDS_MONITOR_J' | tee ./configuration/generated/zk_agent.json
 echo '$ZK_SRV_IPS_J' | tee ./configuration/generated/zk_servers_addrs.json
 echo '$ID_MONITORED_M_J' | tee ./configuration/generated/ec2_inst.json
+echo '$i' | tee ./configuration/generated/id_monitor.json
 echo 'finished ${MONITOR_NAMES[$i]}' 
-"
-done
+" &
+done 
 
 #zookeeper server conf file
 MYID=0
