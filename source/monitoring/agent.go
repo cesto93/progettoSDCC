@@ -16,7 +16,8 @@ import (
  	monitorIntervalSeconds = 300
  	zkServersIpPath = "../configuration/generated/zk_servers_addrs.json"
  	zkAgentPath = "../configuration/generated/zk_agent.json"
- 	membershipNodePath = "/membership"
+ 	aliveNodePath = "/alive"
+ 	startingNodePath = "/starting"
 
  	EC2MetricJsonPath = "../configuration/metrics_ec2.json"
  	EC2InstPath = "../configuration/generated/ec2_inst.json"
@@ -81,7 +82,8 @@ func main() {
  	fmt.Println(zkServerAddresses)
  	//less than 3 servers dosen't make zookeeper fault tolerant
 
- 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, membershipNodePath, members)
+ 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath, startingNodePath,
+ 									 members)
  	utility.CheckError(err)
  	err = zkBridge.RegisterMember(members[index], "info")
  	go checkMembersDead(zkBridge)
@@ -102,6 +104,7 @@ func main() {
 				fmt.Println("This is is dead: " + dead + "\n")
 				err = myRestarter.Restart(dead)
 				fmt.Println(err)
+				zkBridge.MemberIsStarting(dead, time.Now().String())
 				//utility.CheckError(err)
 			}
 		}
