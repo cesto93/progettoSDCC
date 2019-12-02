@@ -99,9 +99,10 @@ func main() {
 		time.Sleep(time.Second)
 		if zkBridge.MembersDead != nil {
 			for _, dead := range zkBridge.MembersDead {
-				fmt.Println("This is is dead: " + dead)
+				fmt.Println("This is is dead: " + dead + "\n")
 				err = myRestarter.Restart(dead)
-				utility.CheckError(err)
+				fmt.Println(err)
+				//utility.CheckError(err)
 			}
 		}
 		if (now.After(nextMeasure)) {
