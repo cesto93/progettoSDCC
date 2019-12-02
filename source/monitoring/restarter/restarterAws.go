@@ -20,8 +20,7 @@ func NewAws() *AwsRestarter {
 	return &AwsRestarter{ec2.New(sess)}
 }
 
-//TODO implements state recovery / app restart of monitoring
-func (myRestarter *AwsRestarter) Restart(instanceId string) error {
+func (myRestarter *AwsRestarter) restart(instanceId string) error {
 	input := &ec2.RebootInstancesInput{
     	InstanceIds: []*string{
         	&instanceId,
@@ -29,7 +28,30 @@ func (myRestarter *AwsRestarter) Restart(instanceId string) error {
 	}
 	_, err := myRestarter.client.RebootInstances(input)
 	if err != nil {
+    	return fmt.Errorf("failed to start instance: %v", err)
+	}
+	return nil
+}
+
+func (myRestarter *AwsRestarter) start(instanceId string) error {
+	input := &ec2.StartInstancesInput{
+    	InstanceIds: []*string{
+        	&instanceId,
+    	},
+	}
+	_, err := myRestarter.client.StartInstances(input)
+	if err != nil {
     	return fmt.Errorf("failed to restart instance: %v", err)
 	}
 	return nil
+}
+
+//TODO implements state recovery / app restart of monitoring
+func (myRestarter *AwsRestarter) Restart(instanceId string) error {
+
+	err := myRestarter.restart(instanceId)
+	if (err != nil) {
+		err = myRestarter.start(instanceId)
+	}
+	return err
 }
