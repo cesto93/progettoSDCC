@@ -1,5 +1,5 @@
 package restarter
 
 type Restarter interface {
-	Restart(instanceId string) error
+	Restart(instanceId string) (bool, error)
 }

@@ -14,6 +14,7 @@ import (
  const (
  	sessionTimeout = 10
  	monitorIntervalSeconds = 300
+ 	restartIntervalSecond = 5
  	zkServersIpPath = "../configuration/generated/zk_servers_addrs.json"
  	zkAgentPath = "../configuration/generated/zk_agent.json"
  	idMonitorPath = "../configuration/generated/id_monitor.json"
@@ -53,16 +54,12 @@ func main() {
 	var zkServerAddresses, members []string
 	var monitorBridge monitor.MonitorBridge
 	var myRestarter restarter.Restarter
-	var aws bool
+	var aws,tryed bool
 	var index, next int
+	var now, nextMeasure time.Time
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
 	flag.Parse()
-
- 	/*startTime, _ := time.Parse(time.RFC3339, "2019-11-09T15:35:00+02:00")
- 	endTime, _ := time.Parse(time.RFC3339, "2019-11-09T16:00:00+02:00")
- 	startTime, _ := time.Parse(time.RFC3339, "2019-11-09T00:00:00+00:00")
- 	endTime, _ := time.Parse(time.RFC3339, "2019-11-09T00:10:00+00:00")*/
 
  	if (aws) {
  		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, StatPath)
@@ -79,10 +76,9 @@ func main() {
  	utility.CheckError(err)
  	err = utility.ImportJson(idMonitorPath, &index)
  	utility.CheckError(err)
- 	next = (index + 1) % len(members)
 
- 	fmt.Println(zkServerAddresses)
- 	//less than 3 servers dosen't make zookeeper fault tolerant
+ 	next = (index + 1) % len(members) //this is the id of agent to restart if crash
+ 	fmt.Println(zkServerAddresses) //less than 3 servers dosen't make zookeeper fault tolerant
 
  	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath, members)
  	utility.CheckError(err)
@@ -91,19 +87,23 @@ func main() {
  	utility.CheckError(err)
 
 	monitorInterval := monitorIntervalSeconds * time.Second
-	now := time.Now()
-	saveMetrics(monitorBridge, monitorInterval)
-	nextMeasure := time.Now()
+	nextMeasure = now.Add(-monitorInterval)
 	for {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * restartIntervalSecond)
+		now = time.Now()
 		if zkBridge.IsDead != false {
 			fmt.Println("This is is dead: " + members[next] + "\n")
-			err = myRestarter.Restart(members[next])
+			tryed, err = myRestarter.Restart(members[next])
 			fmt.Println(err)
 			//utility.CheckError(err)
+
+			if tryed {
+				fmt.Println("Tried to restart")
+			}
 		}
 		if (now.After(nextMeasure)) {
 			saveMetrics(monitorBridge, monitorInterval)
+			nextMeasure = now.Add(monitorInterval)
 		}
 	}
  }

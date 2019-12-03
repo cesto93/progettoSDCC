@@ -71,17 +71,19 @@ func (myRestarter *AwsRestarter) start(instanceId string) error {
 }
 
 //TODO implements state recovery / app restart of monitoring
-func (myRestarter *AwsRestarter) Restart(instanceId string) error {
+func (myRestarter *AwsRestarter) Restart(instanceId string) (bool, error) {
 	state, err := myRestarter.getState(instanceId)
 	if err != nil {
-		return err
+		return false, err
 	}
 	fmt.Println(state)
-	if state.Code == aws.Int64(16) {
+	if *state.Code == 16 {
 		err = myRestarter.restart(instanceId)
-	} else if state.Code == aws.Int64(80) {
+		return true, err
+	}  
+	if *state.Code == 80 {
 		err = myRestarter.start(instanceId)
-
+		return true, err
 	}
-	return err
+	return false, err
 }
