@@ -1,0 +1,20 @@
+[
+	{
+		"Name": "Memory utilization",
+		"Url": "agent.googleapis.com/memory/percent_used",
+		"Labels": [
+		 	{
+				"Name": "state",
+				"Value": "used"
+			}
+		]
+	},
+	{
+		"Name": "CPU utilization",
+		"Url": "compute.googleapis.com/instance/cpu/utilization"
+	},
+	{
+		"Name": "Received bytes",
+		"Url": "compute.googleapis.com/instance/network/received_bytes_count"
+	}
+]

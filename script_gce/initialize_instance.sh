@@ -11,7 +11,7 @@ wget https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz 1> /dev/null 2> /dev/n
 tar -xvf go1.13.1.linux-amd64.tar.gz 1> /dev/null 2> /dev/null
 rm go1.13.1.linux-amd64.tar.gz
 sudo mv go /usr/local
-export GOROOT=/usr/local/go
+export GOROOT=/usr/local/go		#export every time these 3 variables...
 export GOPATH=$(pwd)
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 go get -u cloud.google.com/go/monitoring/apiv3

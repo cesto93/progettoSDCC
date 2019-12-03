@@ -1,0 +1,10 @@
+[
+	{
+		"Name":	"Up",
+		"Url": "http://localhost:9090/api/v1/query_range?query=up"
+	},
+	{
+		"Name":	"Total context switches",
+		"Url": "http://localhost:9090/api/v1/query_range?query=node_context_switches_total"
+	}
+]
