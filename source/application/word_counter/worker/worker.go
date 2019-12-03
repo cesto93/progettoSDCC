@@ -25,6 +25,7 @@ const (
 	State_Map = 1
 	State_Reducer = 2
 	nodesJsonPath = "../configuration/generated/app_node.json"
+	idWorkerPath = "../configuration/generated/id_worker.json"
 )
 
 func reducerKey(word string, n_nodes int) int {
@@ -130,9 +131,17 @@ func (t *Worker) GetResults(state bool, res *[]wordCountUtils.WordCount) error {
 
 func main() {
 	var nodeConf rpcUtils.NodeConfiguration
-	index, err := strconv.Atoi(os.Args[1])
-	utility.CheckError(err)
+	var index int
+	var err error
+	if len(os.Args) == 2 {
+		index, err = strconv.Atoi(os.Args[1])
+		utility.CheckError(err)
+	} else {
+		err = utility.ImportJson(idWorkerPath, &index)
+ 		utility.CheckError(err)
+	}
 	utility.ImportJson(nodesJsonPath, &nodeConf)
+	utility.CheckError(err)
 	fmt.Println("Starting rpc service on worker node at port " + nodeConf.Workers[index].Port)
 	worker := new(Worker)
 	rpcUtils.ServRpc(nodeConf.Workers[index].Port, "Worker", worker)
