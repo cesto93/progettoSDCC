@@ -33,7 +33,7 @@ type Prometheus_Metric struct {
 
 //instant queries
 
-/*func GetPrometheusMetrics(PrometheusMetricsJsonPath string) ([]MetricData, error) {
+/*func GetPrometheusMetricsInstant(PrometheusMetricsJsonPath string) ([]MetricData, error) {
         var metric []Prometheus_Metric
         var prom_resp Prometheus_Resp
         var result []MetricData
@@ -66,6 +66,8 @@ type Prometheus_Metric struct {
         return result, err
 }*/
 
+//range queries
+
 func GetPrometheusMetricsRange(PrometheusMetricsJsonPath string, startTime time.Time, endTime time.Time) ([]MetricData, error) {
         var metric []Prometheus_Metric
         var prom_resp Prometheus_Resp
@@ -78,9 +80,12 @@ func GetPrometheusMetricsRange(PrometheusMetricsJsonPath string, startTime time.
                 req:=metric[i].Url + "&start=" + startTime.Format(time.RFC3339) + "&end=" + endTime.Format(time.RFC3339) + "&step=1m"
                 resp, err:= http.Get(req)
                 if err != nil {
-                        fmt.Errorf("could not read time series value, %v ", err)
+                        fmt.Errorf("could not get time series, %v ", err)
                 }
                 body, err := ioutil.ReadAll(resp.Body)
+                if err != nil {
+                        fmt.Errorf("could not read time series , %v ", err)
+                }
                 //fmt.Println(req)
                 err = json.Unmarshal(body, &prom_resp)
                 if err != nil {
