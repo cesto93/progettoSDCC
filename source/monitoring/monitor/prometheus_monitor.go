@@ -31,9 +31,13 @@ type Prometheus_Metric struct {
         Url string
 }
 
+type PrometheusMonitor struct {
+        Metric []Prometheus_Metric
+}
+
 //instant queries
 
-/*func GetPrometheusMetricsInstant(PrometheusMetricsJsonPath string) ([]MetricData, error) {
+/*func (monitor *PrometheusMonitor) getPrometheusMetricsInstant(PrometheusMetricsJsonPath string) ([]MetricData, error) {
         var metric []Prometheus_Metric
         var prom_resp Prometheus_Resp
         var result []MetricData
@@ -41,8 +45,8 @@ type Prometheus_Metric struct {
         var err error = nil
 
         utility.ImportJson(PrometheusMetricsJsonPath, &metric)
-        for i:=0; i<len(metric); i++{
-                resp, err:= http.Get(metric[i].Url)
+        for i:=0; i<len(monitor.Metric); i++{
+                resp, err:= http.Get(monitor.Metric[i].Url)
                 if err != nil {
                         fmt.Errorf("could not read time series value, %v ", err)
                 }
@@ -55,7 +59,7 @@ type Prometheus_Metric struct {
                         //fmt.Println(prom_resp.Data.Result[j].Metric)
                         r.Values= make([]interface{}, 1)
                         r.Timestamps= make([]time.Time, 1)
-                        r.Label = metric[i].Name
+                        r.Label = monitor.Metric[i].Name
                         r.Timestamps[0] = time.Unix(int64(prom_resp.Data.Result[j].Value[0].(float64)), 0)
                         r.Values[0] = prom_resp.Data.Result[j].Value[1]
                         resp.Body.Close()
@@ -68,16 +72,14 @@ type Prometheus_Metric struct {
 
 //range queries
 
-func GetPrometheusMetricsRange(PrometheusMetricsJsonPath string, startTime time.Time, endTime time.Time) ([]MetricData, error) {
-        var metric []Prometheus_Metric
+func (monitor *PrometheusMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([]MetricData, error) {
         var prom_resp Prometheus_Resp
         var result []MetricData
         var r MetricData
         var err error = nil
 
-        utility.ImportJson(PrometheusMetricsJsonPath, &metric)
-        for i:=0; i<len(metric); i++{
-                req:=metric[i].Url + "&start=" + startTime.Format(time.RFC3339) + "&end=" + endTime.Format(time.RFC3339) + "&step=1m"
+        for i:=0; i<len(monitor.Metric); i++{
+                req:=monitor.Metric[i].Url + "&start=" + startTime.Format(time.RFC3339) + "&end=" + endTime.Format(time.RFC3339) + "&step=1m"
                 resp, err:= http.Get(req)
                 if err != nil {
                         fmt.Errorf("could not get time series, %v ", err)
@@ -94,7 +96,7 @@ func GetPrometheusMetricsRange(PrometheusMetricsJsonPath string, startTime time.
                 //fmt.Println(prom_resp)
                 for k:=0; k<len(prom_resp.Data.Result); k++{
                         //fmt.Println(prom_resp.Data.Result[k])
-                        r.Label = metric[i].Name
+                        r.Label = monitor.Metric[i].Name
                         r.Timestamps = make([]time.Time, len(prom_resp.Data.Result[k].Value))
                         r.Values = make([]interface{}, len(prom_resp.Data.Result[k].Value))
                         for j:=0; j<len(prom_resp.Data.Result[k].Value); j++{
@@ -107,4 +109,11 @@ func GetPrometheusMetricsRange(PrometheusMetricsJsonPath string, startTime time.
         }
         printMetricDatas(result)
         return result, err
+}
+
+func NewPrometheus(PrometheusMetricsJsonPath string) *PrometheusMonitor {
+        var metrics []Prometheus_Metric
+
+        utility.ImportJson(PrometheusMetricsJsonPath, &metrics)
+        return &PrometheusMonitor{metrics}
 }
