@@ -1,5 +1,20 @@
 # ProgettoSDCC
 
+## Local Dependency
+For launching the script you need to install
+
+* jq
+* konsole
+* awscli
+* gcloud
+
+## AWS setup
+For setup the instance to monitoring and wordcount application you need to:
+
+*
+
+## GC setup
+
 ## Application
 
 ###Commands

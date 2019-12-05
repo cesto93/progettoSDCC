@@ -1,13 +1,9 @@
 #!/bin/bash
-
-KEY_POS="/home/pier/Desktop/progetto_sdcc/myKey.pem"
+source ./conf/key.sh
 CONF=$(<../configuration/word_count.json)
-GC_ADDR_J=$(<../configuration/generated/gc_workers.json)
 
 #importing configuration
 NAMES=( $(echo $CONF | jq -r '.aws[].name') )
-
-#TODO add GC workers
 
 #workers
 for (( i=1; i<${#NAMES[@]}; i++ ));
@@ -16,8 +12,8 @@ INSTANCES[$i]=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${NAME
 INSTANCE_DNS[$i]=$(echo ${INSTANCES[$i]} | jq -r '.[].PublicDnsName')
 konsole --new-tab --noclose -e ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[$i]} \
 "
-cd ./go/src/prottSDCC/bin
-./worker $i
+cd ./go/src/progettoSDCC/bin
+./worker
 " &
 done
 
@@ -26,7 +22,7 @@ INSTANCES[0]=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${NAMES
 INSTANCE_DNS[0]=$(echo ${INSTANCES[0]} | jq -r '.[].PublicDnsName')
 konsole --new-tab --noclose -e ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[0]} \
 "
-cd ./go/src/proettoSDCC/bin
+cd ./go/src/progettoSDCC/bin
 ./master
 " &
 

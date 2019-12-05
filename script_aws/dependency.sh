@@ -1,9 +1,9 @@
 #!/bin/bash
+source ./conf/key.sh
+CONF=$(<../configuration/word_count.json)
 
-KEY_POS="/home/pier/Desktop/progetto_sdcc/myKey.pem"
-GIT_KEY_FILE="sdcc_git"
-LOCAL_DIR="/home/pier/.ssh"
-AWS_DIR="/home/ec2-user/.ssh"
+#importing configuration
+NAMES=( $(echo $CONF | jq -r '.aws[].name') )
 
 #depency and project clone
 for (( i=0; i<${#NAMES[@]}; i++ ));
@@ -20,12 +20,13 @@ sudo yum install git -y -q -e 0
 sudo yum install golang -y -q -e 0
 #sudo yum install jq -y -q -e 0
 go get -u github.com/aws/aws-sdk-go
+go get -u cloud.google.com/go/monitoring/apiv3
 go get -u github.com/samuel/go-zookeeper/zk
 
 cd ./go/src
 sudo rm -rf progettoSDCC
 git clone git@github.com:cesto93/progettoSDCC
-mkdir -p ./configuration/generated
+mkdir -p ./progettoSDCC/configuration/generated
 echo 'finished installing' 
 " &
 done

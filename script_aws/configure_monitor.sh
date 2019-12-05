@@ -1,6 +1,5 @@
 #!/bin/bash
-
-KEY_POS="/home/pier/Desktop/progetto_sdcc/myKey.pem"
+source ./conf/key.sh
 CONF_MONITOR=$(<../configuration/monitor.json)
 
 #importing configuration

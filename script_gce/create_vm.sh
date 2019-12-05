@@ -2,9 +2,10 @@
 #create google compute vm
 #argument: instance name
 
-PROJ="concise-faculty-246814"
-ZONE="us-central1-a"
-SERV="wordcount-service-account"
+#PROJ="concise-faculty-246814"
+#ZONE="us-central1-a"
+#SERV="wordcount-service-account"
+source ./conf/project.sh
 MTYPE="f1-micro"
 HDD="10GB"
 
@@ -14,4 +15,4 @@ create $1 --zone=$ZONE --machine-type=$MTYPE \
 --service-account=$SERV@$PROJ.iam.gserviceaccount.com \
 --scopes=https://www.googleapis.com/auth/cloud-platform --tags=http-server,https-server \
 --image=debian-9-stretch-v20191115 --image-project=debian-cloud --boot-disk-size=$HDD \
---boot-disk-type=pd-standard --boot-disk-device-name=$1 --reservation-affinity=any
+--boot-disk-type=pd-standard --boot-disk-device-name=$1 --reservation-affinity=any -q

@@ -5,6 +5,10 @@
 /script_aws/test
 /compile.sh
 
+#ingnore script conf files for aws e gc
+/script_aws/conf
+/script_gce/conf
+
 #ignore bin folder
 /bin
 

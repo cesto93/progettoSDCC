@@ -92,7 +92,7 @@ func main() {
 		time.Sleep(time.Second * restartIntervalSecond)
 		now = time.Now()
 		if zkBridge.IsDead != false {
-			fmt.Println("This is is dead: " + members[next] + "\n")
+			fmt.Println("This is is dead: " + members[next])
 			tryed, err = myRestarter.Restart(members[next])
 			fmt.Println(err)
 			//utility.CheckError(err)

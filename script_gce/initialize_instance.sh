@@ -4,24 +4,54 @@
 echo "updating OS..."
 sudo apt-get update 1> /dev/null 2> /dev/null
 sudo apt-get -y upgrade 1> /dev/null 2> /dev/null
+
 echo "installing git..."
 sudo apt-get install git -y 1> /dev/null 2> /dev/null
+
 echo "installing go..."
 wget https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz 1> /dev/null 2> /dev/null
 tar -xvf go1.13.1.linux-amd64.tar.gz 1> /dev/null 2> /dev/null
 rm go1.13.1.linux-amd64.tar.gz
 sudo mv go /usr/local
-export GOROOT=/usr/local/go		#export every time these 3 variables...
-export GOPATH=$(pwd)
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+
+echo "installing project and dependency..."
 go get -u cloud.google.com/go/monitoring/apiv3
+go get -u github.com/aws/aws-sdk-go
+go get -u github.com/samuel/go-zookeeper/zk
+cd ./go/src
+sudo rm -rf progettoSDCC
+git clone git@github.com:cesto93/progettoSDCC
+mkdir -p ./progettoSDCC/configuration/generated
+
+echo "setting gopath and other stuff..."
+echo \
+'
+#GO STUFF
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+' | tee -a ./.profile
+
+echo \
+'
+#GO STUFF
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+' | tee -a ./.bashrc
+
 #echo "building monitor..."
 #go build google_monitor.go
 #go build wordcount.go
+
 echo "installing stackdriver-agent..."
 curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
 sudo bash install-monitoring-agent.sh 1> /dev/null 2> /dev/null
 rm install-monitoring-agent.sh
+
 echo "installing prometheus..."
 sudo groupadd --system prometheus
 sudo useradd --no-create-home -s /sbin/nologin --system -g prometheus prometheus
@@ -67,6 +97,7 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+
 for i in rules rules.d files_sd; do sudo chown -R prometheus:prometheus /etc/prometheus/${i}; done
 for i in rules rules.d files_sd; do sudo chmod -R 775 /etc/prometheus/${i}; done
 sudo chown -R prometheus:prometheus /var/lib/prometheus/
@@ -96,6 +127,7 @@ ExecStart=/usr/local/bin/node_exporter
 [Install]
 WantedBy=default.target
 EOF
+
 sudo systemctl daemon-reload
 sudo systemctl start node_exporter
 sudo systemctl enable node_exporter 1> /dev/null 2> /dev/null

@@ -21,14 +21,6 @@
     {
       "name": "worker-4",
       "port": "1054"
-    },
-    {
-      "name": "worker-5",
-      "port": "1055"
-    },
-    {
-      "name": "worker-6",
-      "port": "1056"
     }
   ]
 }
