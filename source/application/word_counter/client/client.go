@@ -9,8 +9,18 @@ import (
 	"progettoSDCC/source/utility"
 	"progettoSDCC/source/application/word_counter/storage"
 	"progettoSDCC/source/application/word_counter/rpcUtils"
-	"progettoSDCC/source/application/word_counter/wordCountUtils"
 )
+
+func readWordfileFromS3(key string, bucketName string) *string {
+	s := storage.New(bucketName)
+	data,err := s.Read(key)
+	if err != nil {
+			fmt.Println(err)
+			return nil
+	}
+	res := string(data)
+	return &res
+}
 
 func putWordsToServer(bucketName string, names []string, paths []string){
 	s := storage.New(bucketName)
@@ -24,20 +34,6 @@ func putWordsToServer(bucketName string, names []string, paths []string){
 			log.Fatal(err)
 		}
 	}
-}
-
-func requestWordCount(wordFiles []string, node rpcUtils.Node) []wordCountUtils.WordCount{
-	var res []wordCountUtils.WordCount
-	client, err := rpc.DialHTTP("tcp", node.Address + ":" + node.Port)
-	if err != nil {
-		log.Fatal("Error in dialing: ", err)
-	}
-	defer client.Close()
-	err = client.Call("Master.DoWordCount", wordFiles, &res)
-	if err != nil {
-		log.Fatal("Error in rpc_Map: ", err)
-	}
-	return res
 }
 
 func removeWordsFromServer(bucketName string, keys []string){
@@ -55,6 +51,21 @@ func listFileOnServer(bucketName string) []string {
 			log.Fatal(err)
 	}
 	return res
+}
+
+func requestWordCount(wordFiles []string, node rpcUtils.Node, bucketName string) string{
+	var success bool
+	client, err := rpc.DialHTTP("tcp", node.Address + ":" + node.Port)
+	if err != nil {
+		log.Fatal("Error in dialing: ", err)
+	}
+	defer client.Close()
+	err = client.Call("Master.DoWordCount", wordFiles, &success)
+	if err != nil {
+		log.Fatal("Error in rpc_Map: ", err)
+	}
+	res := readWordfileFromS3("WordCount_Res", bucketName)
+	return *res
 }
 
 func main(){
@@ -83,9 +94,7 @@ func main(){
 		fmt.Println(listFileOnServer(bucketName))
 	} else if (count){
 		fmt.Println("Requesting word count to master")
-		results := requestWordCount(names, serverAddr)
-		for _, res := range results {
-			fmt.Println(res.Word, res.Occurrence)
-		}
+		results := requestWordCount(names, serverAddr, bucketName)
+		fmt.Println(results)
 	}
 }

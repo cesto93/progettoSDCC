@@ -3,6 +3,7 @@ package wordCountUtils
 import(
 	"strings"
 	"unicode"
+	"fmt"
 )
 
 type WordCount struct {
@@ -42,5 +43,9 @@ func CountWords(words []WordCount) []WordCount {
 		}
 	}
 	return counted
+}
+
+func ToString(wd []WordCount) string {
+	return fmt.Sprintf("%v", wd)
 }
 

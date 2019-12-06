@@ -34,6 +34,15 @@ func readWordfilesFromS3(keys []string, bucketName string) []string {
 	return texts
 }
 
+func saveResults(res []wordCountUtils.WordCount, name string){
+	s := storage.New(bucketName)
+	text := wordCountUtils.ToString(res)
+	err := s.Write(name, []byte(text))
+	if err != nil {
+			log.Fatal(err)
+	}
+}
+
 //ASYNC
 func callMapOnWorkers(texts []string, nodes []rpcUtils.Node) {
 	rpcChan := make(chan *rpc.Call, len(nodes))
@@ -110,7 +119,7 @@ func getResultsOnWorkers(nodes []rpcUtils.Node) []wordCountUtils.WordCount {
 	return res
 }
 
-func (t *Master) DoWordCount(wordFiles []string, res *[]wordCountUtils.WordCount) error{
+func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 	fmt.Println("Request received")
 	nodes := nodeConf.Workers
 
@@ -124,7 +133,9 @@ func (t *Master) DoWordCount(wordFiles []string, res *[]wordCountUtils.WordCount
 
 	callBarrierOnWorkers(nodes) //End of this function means results are ready
 
-	*res = getResultsOnWorkers(nodes)
+	counted := getResultsOnWorkers(nodes)
+	saveResults(counted, "WordCount_Res")
+	*res = true
 	return nil
 }
 
