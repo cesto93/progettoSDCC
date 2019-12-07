@@ -1,25 +1,21 @@
 package metrics
 
 import (
-	time
+	"time"
 	"progettoSDCC/source/utility"
 )
 
-type WordElaborated int
-type Latency time.Duration
-type ThroughPut string
-type Workers int
 
 type WordCountMetrics struct {
-	WordElaborated WordElaboratedApplication
-	Latency LatencyApplication 
-	string ThroughPutApplication
-	int Workers
+	WordElaboratedApplication int
+	LatencyApplication time.Duration
+	ThroughPutApplication int
+	Workers int
 }
 
-type WordCountMetricsData struc {
-	WordCountMetrics Metrics
-	Time.time Timestamp
+type WordCountMetricsData struct {
+	Metrics WordCountMetrics
+	Timestamp time.Time
 }
 
 func AppendApplicationMetrics(path string, metrics WordCountMetrics) error {
@@ -27,12 +23,11 @@ func AppendApplicationMetrics(path string, metrics WordCountMetrics) error {
 	if err != nil {
 		return err
 	}
-	data = append(metrics, time.Now())
-	file, _ := json.MarshalIndent(data, "", " ")
-	return ioutil.WriteFile(path, file, 0644)
+	data = append(data, WordCountMetricsData{metrics, time.Now()})
+	return utility.ExportJson(path, data)
 }
 
-func ReadApplicationMetrics(path string) ([]WordCountMetrics, error) {
+func ReadApplicationMetrics(path string) ([]WordCountMetricsData, error) {
 	var res []WordCountMetricsData
 	err := utility.ImportJson(path, &res)
 	return res, err

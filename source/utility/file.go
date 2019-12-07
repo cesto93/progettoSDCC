@@ -17,6 +17,11 @@ func ImportJson(path string, pointer interface{}) error{
 	return nil
 }
 
+func ExportJson(path string, data interface{}) error {
+	file, _ := json.MarshalIndent(data, "", " ")
+	return ioutil.WriteFile(path, file, 0644)
+}
+
 func readWordfiles(paths []string) ([]string, error) {
 	var texts []string
 	for i := range paths {

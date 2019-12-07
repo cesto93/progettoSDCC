@@ -5,10 +5,12 @@ import (
 	"log"
 	"net/rpc"
 	"flag"
+	"time"
 	"progettoSDCC/source/application/word_counter/storage"
 	"progettoSDCC/source/application/word_counter/rpcUtils"
 	"progettoSDCC/source/application/word_counter/wordCountUtils"
 	"progettoSDCC/source/utility"
+	"progettoSDCC/source/metrics"
 )
 
 type Master int
@@ -18,6 +20,7 @@ var bucketName string
 
 const (
 	nodesJsonPath = "../configuration/generated/app_node.json"
+	metricsJsonPath = "../log/app_metrics.json"
 )
 
 func readWordfilesFromS3(keys []string, bucketName string) []string {
@@ -121,22 +124,34 @@ func getResultsOnWorkers(nodes []rpcUtils.Node) []wordCountUtils.WordCount {
 
 func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 	fmt.Println("Request received")
-	nodes := nodeConf.Workers
+	start := time.Now()
 
-	s := readWordfilesFromS3(wordFiles, bucketName)
+	nodes := nodeConf.Workers
+	words := readWordfilesFromS3(wordFiles, bucketName)
 
 	for i := range nodes {
 		callLoadTopologyOnWorker(nodes, nodes[i])
 	}
 
-	callMapOnWorkers(s, nodes) //End of this function means Map is done on all nodes
+	callMapOnWorkers(words, nodes) //End of this function means Map is done on all nodes
 
 	callBarrierOnWorkers(nodes) //End of this function means results are ready
 
 	counted := getResultsOnWorkers(nodes)
 	saveResults(counted, "WordCount_Res")
+
+	end := time.Now()
+	diff := end.Sub(start)
+	logData(len(words), diff, len(nodeConf.Workers))
+
 	*res = true
 	return nil
+}
+
+func logData(words int, latency time.Duration, workers int) {
+	throughput := words / int(latency.Nanoseconds() / 1e6)
+	myMetrics := metrics.WordCountMetrics{words, latency, throughput, workers}
+	metrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
 }
 
 func main() {
