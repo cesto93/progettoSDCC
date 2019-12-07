@@ -4,19 +4,17 @@
 
 ZONE="us-central1-a"
 GROUP="instance-group-1"
-source ./key.sh
+source ./conf/key.sh
 
 echo "Generating VM instance..."
 ./create_vm.sh $1 #2> /dev/null
 
 echo "Integration in instances group..."
-gcloud compute instance-groups unmanaged add-instances $GROUP --zone=$ZONE \
---instances $1 1> /dev/null 2> /dev/null
+gcloud compute instance-groups unmanaged add-instances $GROUP --zone=$ZONE --instances $1 -q
 
 echo "Connecting..."
 #gcloud compute scp --zone=$ZONE google_monitor.go $1:~ 1> /dev/null 2> /dev/null
-#gcloud compute scp --zone=$ZONE ../wordcount.go $1:~ 1> /dev/null 2> /dev/null
-gcloud compute scp --zone=$ZONE initialize_instance.sh $1:~ 1> -q
+gcloud compute scp --zone=$ZONE initialize_instance.sh $1:~ -q
 gcloud compute scp --zone=$ZONE $LOCAL_DIR/$GIT_KEY_FILE $USER@$1:$GC_DIR -q
 gcloud compute scp --zone=$ZONE $LOCAL_DIR/config  $USER@$1:$GC_DIR -q 
 

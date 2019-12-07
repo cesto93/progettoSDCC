@@ -18,7 +18,6 @@ do
 sudo yum update -y -q
 sudo yum install git -y -q -e 0
 sudo yum install golang -y -q -e 0
-#sudo yum install jq -y -q -e 0
 go get -u github.com/aws/aws-sdk-go
 go get -u cloud.google.com/go/monitoring/apiv3
 go get -u github.com/samuel/go-zookeeper/zk

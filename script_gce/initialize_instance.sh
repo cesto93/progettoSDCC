@@ -2,50 +2,25 @@
 #initialize google compute vm
 
 echo "updating OS..."
-sudo apt-get update 1> /dev/null 2> /dev/null
-sudo apt-get -y upgrade 1> /dev/null 2> /dev/null
+sudo apt-get -q update 1> /dev/null #2> /dev/null
+sudo apt-get -q -y upgrade 1> /dev/null
 
 echo "installing git..."
-sudo apt-get install git -y 1> /dev/null 2> /dev/null
+sudo apt-get install git -y -q 1> /dev/null
 
 echo "installing go..."
-wget https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz 1> /dev/null 2> /dev/null
-tar -xvf go1.13.1.linux-amd64.tar.gz 1> /dev/null 2> /dev/null
-rm go1.13.1.linux-amd64.tar.gz
-sudo mv go /usr/local
-export GOROOT=/usr/local/go
-export GOPATH=$HOME/go
-export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+sudo apt-get install golang -y -q 1> /dev/null
 
-echo "installing project and dependency..."
+echo "installing project dependency..."
 go get -u cloud.google.com/go/monitoring/apiv3
 go get -u github.com/aws/aws-sdk-go
 go get -u github.com/samuel/go-zookeeper/zk
+
+echo "installing project..."
 cd ./go/src
 sudo rm -rf progettoSDCC
-git clone git@github.com:cesto93/progettoSDCC
+git clone git@github.com:cesto93/progettoSDCC -q
 mkdir -p ./progettoSDCC/configuration/generated
-
-echo "setting gopath and other stuff..."
-echo \
-'
-#GO STUFF
-export GOROOT=/usr/local/go
-export GOPATH=$HOME/go
-export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
-' | tee -a ./.profile
-
-echo \
-'
-#GO STUFF
-export GOROOT=/usr/local/go
-export GOPATH=$HOME/go
-export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
-' | tee -a ./.bashrc
-
-#echo "building monitor..."
-#go build google_monitor.go
-#go build wordcount.go
 
 echo "installing stackdriver-agent..."
 curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh

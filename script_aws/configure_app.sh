@@ -17,16 +17,15 @@ WORKERS[$i]=$(jq -n --arg addr "${IP[$i]}" --arg port "${PORTS[$i]}" '[{"address
 done
 WORKERS_J=$(echo ${WORKERS[@]} $GC_ADDR_J | jq -s 'add')
 APP_NODE=$(jq -n --arg mport ${PORTS[0]} --argjson workers "$WORKERS_J" '{masterport: $mport , workers : $workers}')
-echo $APP_NODE
 
 #ssh conn
 for (( i=1; i<${#NAMES[@]}; i++ ));
 do
 j=$(($i - 1))
-konsole --new-tab --noclose -e ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[$i]} \
+ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[$i]} \
 "
 cd ./go/src/progettoSDCC
-git pull git@github.com:cesto93/progettoSDCC
+git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
 echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 echo '$j' | tee ./configuration/generated/id_worker.json
@@ -41,7 +40,7 @@ IP[0]=$(echo ${INSTANCES[0]} | jq  -r '.[].NetworkInterfaces[].Association.Publi
 ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[0]} \
 "
 cd ./go/src/progettoSDCC
-git pull git@github.com:cesto93/progettoSDCC
+git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/master ./source/application/word_counter/master/master.go
 echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 "

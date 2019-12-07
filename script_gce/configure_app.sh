@@ -17,16 +17,14 @@ done
 WORKERS_J=$(echo ${WORKERS[@]} | jq -s 'add')
 echo $WORKERS_J > "../configuration/generated/gc_workers.json"
 APP_NODE=$(jq -n --arg mport $MPORT --argjson workers "$WORKERS_J" '{masterport: $mport , workers : $workers}')
-echo $APP_NODE
 
 #ssh conn
 for (( i=0; i<${#NAMES[@]}; i++ ));
 do
-konsole --new-tab --noclose -e gcloud compute ssh --zone=$ZONE ${NAMES[$i]} --command \
+gcloud compute ssh --zone=$ZONE ${NAMES[$i]} --command \
 "
-#!/bin/bash
 cd ./go/src/progettoSDCC
-git pull git@github.com:cesto93/progettoSDCC
+git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
 echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 echo '$i' | tee ./configuration/generated/id_worker.json
