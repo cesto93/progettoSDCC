@@ -2,7 +2,7 @@
 #get gce instances ids from names
 
 INPUT_JSON_FILE="../configuration/instances_names.json"
-OUTPUT_JSON_FILE="../configuration/instances_ids.json"
+OUTPUT_JSON_FILE="../configuration/generated/instances_ids.json"
 mapfile -t INSTANCES <<< $(jq -r '.[]' $INPUT_JSON_FILE)
 echo $(for i in "${INSTANCES[@]}"
 do

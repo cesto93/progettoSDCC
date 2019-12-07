@@ -11,6 +11,9 @@ sudo apt-get install git -y -q 1> /dev/null
 echo "installing go..."
 sudo apt-get install golang -y -q 1> /dev/null
 
+echo "installing jq..."
+sudo apt-get install jq -y -q 1> /dev/null
+
 echo "installing project dependency..."
 go get -u cloud.google.com/go/monitoring/apiv3
 go get -u github.com/aws/aws-sdk-go
@@ -41,9 +44,10 @@ curl -s https://api.github.com/repos/prometheus/prometheus/releases/latest \
 tar xvf prometheus*.tar.gz 1> /dev/null 2> /dev/null
 cd prometheus*/
 sudo mv prometheus promtool /usr/local/bin/
-sudo mv prometheus.yml  /etc/prometheus/prometheus.yml
+#sudo mv prometheus.yml  /etc/prometheus/prometheus.yml
 sudo mv consoles/ console_libraries/ /etc/prometheus/
 cd ~/
+sudo mv prometheus.yml  /etc/prometheus/prometheus.yml
 rm -rf /tmp/prometheus
 sudo tee /etc/systemd/system/prometheus.service<<EOF 1> /dev/null 2> /dev/null
 

@@ -17,3 +17,6 @@
 
 #ignore log folder
 /log
+
+#ignore local list of monitored instances
+/configuration/instances_names.json

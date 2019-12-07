@@ -2,7 +2,7 @@
 #create prometheus configuration from instances names
 
 INPUT_JSON_FILE="../configuration/instances_names.json"
-OUTPUT_JSON_FILE="../configuration/instances.json"
+OUTPUT_JSON_FILE="../configuration/generated/instances.json"
 mapfile -t INSTANCES <<< $(jq -r '.[]' $INPUT_JSON_FILE)
 echo $(for i in "${INSTANCES[@]}"
 do
