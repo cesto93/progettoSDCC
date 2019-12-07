@@ -46,6 +46,11 @@ func CountWords(words []WordCount) []WordCount {
 }
 
 func ToString(wd []WordCount) string {
-	return fmt.Sprintf("%v", wd)
+	text :=""
+	for _, w:= range(wd) {
+		text = text + fmt.Sprintf("%v %v\n", w.Word, w.Occurrence)
+		
+	}
+	return text
 }
 

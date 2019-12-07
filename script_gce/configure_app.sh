@@ -24,6 +24,7 @@ for (( i=0; i<${#NAMES[@]}; i++ ));
 do
 konsole --new-tab --noclose -e gcloud compute ssh --zone=$ZONE ${NAMES[$i]} --command \
 "
+#!/bin/bash
 cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
