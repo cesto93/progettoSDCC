@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/rpc"
 	"os"
 	"sync"
@@ -91,7 +90,7 @@ func (t *Worker) EndMapFase(state bool, res *bool) error {
 	for i := range nodes {
 		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
 		if err != nil {
-			log.Fatal("Error in dialing: ", err)
+			return fmt.Errorf("Error in dialing: %v", err)
 		}
 		defer client.Close()
 		client.Go("Worker.LoadReducerWords", words_by_reducer[i], nil, rpc_chan)
@@ -99,7 +98,7 @@ func (t *Worker) EndMapFase(state bool, res *bool) error {
 	for i := range nodes {
 		divCall := <-rpc_chan
 		if divCall.Error != nil {
-			log.Fatal("Error in rpc_Reduce num ", i, " :", divCall.Error.Error())
+			return fmt.Errorf("Error in rpc_Reduce num %d: %v", i, " :", divCall.Error.Error())
 		}
 	}
 
@@ -115,6 +114,11 @@ func (t *Worker) LoadTopology(nodes_list []rpcUtils.Node, res *bool) error {
 	mapper_words = nil
 	mux.Unlock()
 
+	*res = true
+	return nil
+}
+
+func (t *Worker) CheckConn(arg bool, res *bool) error {
 	*res = true
 	return nil
 }

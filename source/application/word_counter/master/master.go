@@ -125,6 +125,20 @@ func getResultsOnWorkers(nodes []rpcUtils.Node) ([]wordCountUtils.WordCount, err
 	return res, nil
 }
 
+//SYNC
+func checkWorker(node rpcUtils.Node) error {
+	client, err := rpc.DialHTTP("tcp", node.Address + ":" + node.Port)
+	if err != nil {
+		return fmt.Errorf("Error in dialing: %v", err)
+	}
+	defer client.Close()
+	err = client.Call("Worker.CheckConn", true, nil)
+	if err != nil {
+		return fmt.Errorf("Error in rpcMap: %v", err)
+	}
+	return nil
+}
+
 func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 	var err error
 	fmt.Println("Request received")
@@ -132,6 +146,14 @@ func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 
 	nodes := nodeConf.Workers
 	words := readWordfilesFromS3(wordFiles, bucketName)
+
+	for i := range nodes {
+		err = checkWorker(nodes[i])
+		if err != nil {
+			utility.CheckErrorNonFatal(err)
+			nodes = append(nodes[:i], nodes[i+1:]...)
+		}
+	}
 
 	for i := range nodes {
 		err = callLoadTopologyOnWorker(nodes, nodes[i])

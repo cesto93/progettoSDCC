@@ -26,6 +26,7 @@ cd ./go/src
 sudo rm -rf progettoSDCC
 git clone git@github.com:cesto93/progettoSDCC
 mkdir -p ./progettoSDCC/configuration/generated
+mkdir -p ./progettoSDCC/configuration/log
 echo 'finished installing' 
 " &
 done
