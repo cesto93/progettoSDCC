@@ -141,38 +141,39 @@ func checkWorker(node rpcUtils.Node) error {
 
 func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 	var err error
+	var aliveNodes []rpcUtils.Node
 	fmt.Println("Request received")
 	start := time.Now()
 
-	nodes := nodeConf.Workers
 	words := readWordfilesFromS3(wordFiles, bucketName)
 
-	for i := range nodes {
-		err = checkWorker(nodes[i])
+	for _, node := range nodeConf.Workers {
+		err = checkWorker(node)
 		if err != nil {
 			utility.CheckErrorNonFatal(err)
-			nodes = append(nodes[:i], nodes[i+1:]...)
+		} else {
+			aliveNodes = append(aliveNodes, node)
 		}
 	}
 
-	for i := range nodes {
-		err = callLoadTopologyOnWorker(nodes, nodes[i])
+	for i := range aliveNodes {
+		err = callLoadTopologyOnWorker(aliveNodes, aliveNodes[i])
 		if err != nil {
 			return err
 		}
 	}
 
-	err = callMapOnWorkers(words, nodes) //End of this function means Map is done on all nodes
+	err = callMapOnWorkers(words, aliveNodes) //End of this function means Map is done on all nodes
 	if err != nil {
 		return err
 	}
 
-	err = callBarrierOnWorkers(nodes) //End of this function means results are ready
+	err = callBarrierOnWorkers(aliveNodes) //End of this function means results are ready
 	if err != nil {
 			return err
 	}
 
-	counted, err := getResultsOnWorkers(nodes)
+	counted, err := getResultsOnWorkers(aliveNodes)
 	if err != nil {
 		return err
 	}
