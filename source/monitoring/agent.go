@@ -4,7 +4,7 @@ import (
  	"time"
  	"fmt"
  	"flag"
- 	"log"
+ 	//"log"
  	"progettoSDCC/source/monitoring/monitor"
  	"progettoSDCC/source/monitoring/zookeeper"
  	"progettoSDCC/source/monitoring/restarter"
@@ -24,6 +24,11 @@ import (
  	EC2InstPath = "../configuration/generated/ec2_inst.json"
  	S3MetricPath = "../configuration/metrics_s3.json"
  	StatPath = "../configuration/monitoring_stat.json"
+
+ 	GcloudMetricsJsonPath = "../../configuration/metrics_gce.json"
+    InstancesJsonPath = "../../configuration/generated/instances_ids.json"
+
+    PrometheusMetricsJsonPath = "../../configuration/metrics_prometheus.json"
  )
 
  func saveMetrics(monitorBridge monitor.MonitorBridge, interval time.Duration) {
@@ -52,7 +57,7 @@ import (
 
 func main() {
 	var zkServerAddresses, members []string
-	var monitorBridge monitor.MonitorBridge
+	var monitorBridge, monitorPrometheus monitor.MonitorBridge
 	var myRestarter restarter.Restarter
 	var aws,tryed bool
 	var index, next int
@@ -61,13 +66,21 @@ func main() {
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
 	flag.Parse()
 
+	//get last five minutes time range
+	startTime := time.Now().UTC().Add(time.Minute * -5)
+    endTime := time.Now().UTC()
+
  	if (aws) {
  		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, StatPath)
  		myRestarter = restarter.NewAws()
  	} else {
- 		//TODO insert google monitor here
- 		log.Fatal("google agent not implemented yes\n")
+ 		monitorBridge = monitor.NewGce(GcloudMetricsJsonPath, InstancesJsonPath)
+ 		myRestarter = restarter.NewGce()
  	}
+ 	monitorBridge.GetMetrics(startTime, endTime)
+
+ 	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
+	monitorPrometheus.GetMetrics(startTime, endTime)
 
  	//load zk conf
  	err := utility.ImportJson(zkAgentPath, &members)
