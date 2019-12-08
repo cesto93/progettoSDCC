@@ -49,27 +49,10 @@ func shaffleAndSort(words []wordCountUtils.WordCount, n_nodes int) [][]wordCount
 	return words_by_reducer
 }
 
-//ASYNC
-func callReduce(words []wordCountUtils.WordCount, nodes []rpcUtils.Node) {
-	words_by_reducer := shaffleAndSort(words, len(nodes))
-	rpc_chan := make(chan *rpc.Call, len(nodes))
-	for i := range nodes {
-		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
-		if err != nil {
-			log.Fatal("Error in dialing: ", err)
-		}
-		defer client.Close()
-		client.Go("Worker.Reduce", words_by_reducer[i], nil, rpc_chan)
-	}
-	for i := range nodes {
-		divCall := <-rpc_chan
-		if divCall.Error != nil {
-			log.Fatal("Error in rpc_Reduce num ", i, " :", divCall.Error.Error())
-		}
-	}
-}
-
 func (t *Worker) Map(text string, res *bool) error {
+	if worker_state == State_Reducer {
+		fmt.Println("busy\n")
+	}
 	worker_state = State_Map
 	temp := wordCountUtils.StringSplit(text)
 
@@ -86,36 +69,51 @@ func (t *Worker) Map(text string, res *bool) error {
 	return nil
 }
 
-func (t *Worker) Reduce(words []wordCountUtils.WordCount, res *bool) error {
+func (t *Worker) LoadReducerWords(words []wordCountUtils.WordCount, res *bool) error {
 	worker_state = State_Reducer
 
 	mux.Lock()
 	if (reducer_words != nil) {
-		for i := range reducer_words {
-			words = append(words, reducer_words[i])
-		}
+		words = append(words, reducer_words...)
 	}
-	reducer_words = wordCountUtils.CountWords(words)
+	reducer_words = words
 	mux.Unlock()
 
 	*res = true
 	return nil
 }
 
+//ASYNC
 func (t *Worker) EndMapFase(state bool, res *bool) error {
-	state = true
-	callReduce(mapper_words, nodes)
+	words_by_reducer := shaffleAndSort(mapper_words, len(nodes))
+	rpc_chan := make(chan *rpc.Call, len(nodes))
+
+	for i := range nodes {
+		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
+		if err != nil {
+			log.Fatal("Error in dialing: ", err)
+		}
+		defer client.Close()
+		client.Go("Worker.LoadReducerWords", words_by_reducer[i], nil, rpc_chan)
+	}
+	for i := range nodes {
+		divCall := <-rpc_chan
+		if divCall.Error != nil {
+			log.Fatal("Error in rpc_Reduce num ", i, " :", divCall.Error.Error())
+		}
+	}
+
 	*res = true
 	return nil
 }
 
 func (t *Worker) LoadTopology(nodes_list []rpcUtils.Node, res *bool) error {
+	mux.Lock()
 	nodes = nodes_list
-
-	//reset_words
 	worker_state = State_Idle
 	reducer_words = nil
 	mapper_words = nil
+	mux.Unlock()
 
 	*res = true
 	return nil
@@ -123,8 +121,12 @@ func (t *Worker) LoadTopology(nodes_list []rpcUtils.Node, res *bool) error {
 
 func (t *Worker) GetResults(state bool, res *[]wordCountUtils.WordCount) error {
 	if worker_state == State_Reducer {
-		*res = reducer_words
+		*res = wordCountUtils.CountWords(reducer_words)
+		mux.Lock()
 		worker_state = State_Idle
+		reducer_words = nil
+		mapper_words = nil
+		mux.Unlock()
 	}
 	return nil
 }

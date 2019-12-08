@@ -28,7 +28,7 @@ func StringSplit(text string) []WordCount {
 	return counted
 }
 
-func CountWords(words []WordCount) []WordCount {
+/*func CountWords(words []WordCount) []WordCount {
 	var counted []WordCount
 	for i := range words {
 		var j int
@@ -43,6 +43,25 @@ func CountWords(words []WordCount) []WordCount {
 		}
 	}
 	return counted
+}*/
+
+func CountWords(words []WordCount) []WordCount {
+	var counted []WordCount
+	k := 0
+	for i, _ := range words {
+		if words[i].Occurrence != 0 {
+			counted = append(counted, words[i])
+			for j := i + 1; j < len(words); j++ {
+				if counted[k].Word == words[j].Word {
+					counted[k].Occurrence = counted[k].Occurrence + words[j].Occurrence
+					words[j].Occurrence = 0
+					//words = append(words[:i], words[i+1:]...)
+				}
+			}
+			k++
+		}
+	}
+	return counted
 }
 
 func ToString(wd []WordCount) string {
@@ -52,5 +71,13 @@ func ToString(wd []WordCount) string {
 		
 	}
 	return text
+}
+
+func CountTotalWords(words []WordCount) int {
+	res := 0
+	for _,word := range words {
+		res += word.Occurrence
+	}
+	return res
 }
 

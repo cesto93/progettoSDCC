@@ -28,5 +28,5 @@ git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
 echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 echo '$i' | tee ./configuration/generated/id_worker.json
-" &
+" -q &
 done

@@ -3,13 +3,14 @@ package metrics
 import (
 	"time"
 	"progettoSDCC/source/utility"
+	"os"
 )
 
 
 type WordCountMetrics struct {
 	WordElaboratedApplication int
-	LatencyApplication time.Duration
-	ThroughPutApplication int
+	ElaborationTime float64 	//sec
+	ThroughPutApplication float64 //(words/sec)
 	Workers int
 }
 
@@ -20,10 +21,16 @@ type WordCountMetricsData struct {
 
 func AppendApplicationMetrics(path string, metrics WordCountMetrics) error {
 	data, err := ReadApplicationMetrics(path)
+	last := WordCountMetricsData{metrics, time.Now()}
 	if err != nil {
-		return err
+		if os.IsNotExist(err) {
+			data = []WordCountMetricsData{last}
+		} else {
+			return err
+		} 
+	} else {
+		data = append(data, last)
 	}
-	data = append(data, WordCountMetricsData{metrics, time.Now()})
 	return utility.ExportJson(path, data)
 }
 

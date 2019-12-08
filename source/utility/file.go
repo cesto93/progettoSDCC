@@ -8,7 +8,7 @@ import (
 func ImportJson(path string, pointer interface{}) error{
 	file_json, err := ioutil.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("File reading error %v", err)
+		return err
 	}
 	err = json.Unmarshal(file_json, pointer)
 	if err != nil {
