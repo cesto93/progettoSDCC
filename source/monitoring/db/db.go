@@ -1,9 +1,9 @@
 package db
 
 import(
+	"fmt"
 	_ "github.com/influxdata/influxdb1-client" // this is important because of the bug in go mod
 	client "github.com/influxdata/influxdb1-client/v2"
-
 	"progettoSDCC/source/monitoring/monitor"
 )
 
@@ -19,10 +19,10 @@ func NewDb(addr string, db string) *DbBridge {
 func (d *DbBridge) SaveMetrics(data []monitor.MetricData) error {
 	// Make client
 	c, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr: d.Addr,
+		Addr: "http://" + d.Addr,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error in client generation %v", err)
 	}
 	defer c.Close()
 
@@ -44,7 +44,7 @@ func (d *DbBridge) SaveMetrics(data []monitor.MetricData) error {
 			fields := map[string]interface{}{"avg": metric.Values[i]}
 			pt, err := client.NewPoint(metric.Label, nil, fields, metric.Timestamps[i])
 			if err != nil {
-				return err
+				return fmt.Errorf("error in newpoint generation %v", err)
 			}
 			bp.AddPoint(pt)
 		}
