@@ -74,7 +74,7 @@ func main() {
 	flag.Parse()
 
 	// db conf
-	err := utility.ImportJson("dbAddrPath", &dbAddr)
+	err := utility.ImportJson(dbAddrPath, &dbAddr)
 	utility.CheckError(err)
 	dbBridge:= db.NewDb(dbAddr, dbName)
 
