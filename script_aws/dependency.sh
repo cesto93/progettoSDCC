@@ -36,6 +36,7 @@ echo 'finished installing preliminary dependency on  ${NAMES[$i]}'
 done
 
 #influxdb install 
+#TODO set db here
 INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=$DB_NAME  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 INST_DNS_DB=$(echo $INST | jq -r '.[].PublicDnsName')
 konsole --new-tab --noclose -e ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@$INST_DNS_DB \

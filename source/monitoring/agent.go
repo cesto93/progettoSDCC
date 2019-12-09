@@ -42,7 +42,8 @@ import (
  	ec2Data, err := monitorBridge.GetMetrics(start, end)
  	utility.CheckError(err)
  	printMetrics(ec2Data)
- 	dbBridge.SaveMetrics(ec2Data)
+ 	err = dbBridge.SaveMetrics(ec2Data)
+ 	utility.CheckError(err)
  }
 
  func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge, id string) {

@@ -5,6 +5,7 @@ CONF=$(<../configuration/monitor.json)
 #importing configuration
 ZK_SRV_NAMES=( $(echo $CONF | jq -r '.servers_zk.names[]') )
 MONITOR_NAMES=( $(echo $CONF | jq -r '.aws[].name') )
+DB_NAME=$(echo $CONF | jq -r '.db.name')
 
 #influxdb 
 INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=$DB_NAME  --query 'Reservations[*].Instances[*]' | jq 'flatten')
