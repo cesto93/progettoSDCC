@@ -4,10 +4,10 @@ import (
  	"time"
  	"fmt"
  	"flag"
- 	//"log"
  	"progettoSDCC/source/monitoring/monitor"
  	"progettoSDCC/source/monitoring/zookeeper"
  	"progettoSDCC/source/monitoring/restarter"
+ 	"progettoSDCC/source/monitoring/db"
  	"progettoSDCC/source/utility"
  )
 
@@ -15,10 +15,15 @@ import (
  	sessionTimeout = 10
  	monitorIntervalSeconds = 300
  	restartIntervalSecond = 5
+
+ 	dbAddrPath = "../configuration/generated/db_addr.json"
+ 	dbName = "mydb"
+
  	zkServersIpPath = "../configuration/generated/zk_servers_addrs.json"
  	zkAgentPath = "../configuration/generated/zk_agent.json"
  	idMonitorPath = "../configuration/generated/id_monitor.json"
  	aliveNodePath = "/alive"
+
 
  	EC2MetricJsonPath = "../configuration/metrics_ec2.json"
  	EC2InstPath = "../configuration/generated/ec2_inst.json"
@@ -31,12 +36,13 @@ import (
     PrometheusMetricsJsonPath = "../../configuration/metrics_prometheus.json"
  )
 
- func saveMetrics(monitorBridge monitor.MonitorBridge, interval time.Duration) {
+ func saveMetrics(monitorBridge monitor.MonitorBridge, dbBridge *db.DbBridge, interval time.Duration) {
  	end := time.Now()
  	start := end.Add(-interval) 
  	ec2Data, err := monitorBridge.GetMetrics(start, end)
  	utility.CheckError(err)
  	printMetrics(ec2Data)
+ 	dbBridge.SaveMetrics(ec2Data)
  }
 
  func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge, id string) {
@@ -57,6 +63,7 @@ import (
 
 func main() {
 	var zkServerAddresses, members []string
+	var dbAddr string
 	var monitorBridge, monitorPrometheus monitor.MonitorBridge
 	var myRestarter restarter.Restarter
 	var aws,tryed bool
@@ -66,9 +73,26 @@ func main() {
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
 	flag.Parse()
 
-	//get last five minutes time range
-	startTime := time.Now().UTC().Add(time.Minute * -5)
-    endTime := time.Now().UTC()
+	// db conf
+	err := utility.ImportJson("dbAddrPath", &dbAddr)
+	utility.CheckError(err)
+	dbBridge:= db.NewDb(dbAddr, dbName)
+
+	// zk conf
+ 	err = utility.ImportJson(zkAgentPath, &members)
+ 	utility.CheckError(err)
+ 	err = utility.ImportJson(zkServersIpPath, &zkServerAddresses)
+ 	utility.CheckError(err)
+ 	err = utility.ImportJson(idMonitorPath, &index)
+ 	utility.CheckError(err)
+ 	next = (index + 1) % len(members) //this is the id of agent to restart if crash
+ 	fmt.Println(zkServerAddresses) //less than 3 servers dosen't make zookeeper fault tolerant
+
+ 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath, members)
+ 	utility.CheckError(err)
+ 	err = zkBridge.RegisterMember(members[index], "info")
+ 	utility.CheckError(err)
+ 	go checkMembersDead(zkBridge, members[next])
 
  	if (aws) {
  		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, StatPath)
@@ -77,27 +101,13 @@ func main() {
  		monitorBridge = monitor.NewGce(GcloudMetricsJsonPath, InstancesJsonPath)
  		myRestarter = restarter.NewGce()
  	}
- 	monitorBridge.GetMetrics(startTime, endTime)
-
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
+
+ 	//get last five minutes time range
+	startTime := time.Now().UTC().Add(time.Minute * -5)
+    endTime := time.Now().UTC()
+ 	monitorBridge.GetMetrics(startTime, endTime)
 	monitorPrometheus.GetMetrics(startTime, endTime)
-
- 	//load zk conf
- 	err := utility.ImportJson(zkAgentPath, &members)
- 	utility.CheckError(err)
- 	err = utility.ImportJson(zkServersIpPath, &zkServerAddresses)
- 	utility.CheckError(err)
- 	err = utility.ImportJson(idMonitorPath, &index)
- 	utility.CheckError(err)
-
- 	next = (index + 1) % len(members) //this is the id of agent to restart if crash
- 	fmt.Println(zkServerAddresses) //less than 3 servers dosen't make zookeeper fault tolerant
-
- 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath, members)
- 	utility.CheckError(err)
- 	err = zkBridge.RegisterMember(members[index], "info")
- 	go checkMembersDead(zkBridge, members[next])
- 	utility.CheckError(err)
 
 	monitorInterval := monitorIntervalSeconds * time.Second
 	nextMeasure = now.Add(-monitorInterval)
@@ -115,7 +125,7 @@ func main() {
 			}
 		}
 		if (now.After(nextMeasure)) {
-			saveMetrics(monitorBridge, monitorInterval)
+			saveMetrics(monitorBridge, dbBridge, monitorInterval)
 			nextMeasure = now.Add(monitorInterval)
 		}
 	}

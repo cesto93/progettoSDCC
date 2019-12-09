@@ -6,6 +6,11 @@ CONF=$(<../configuration/monitor.json)
 ZK_SRV_NAMES=( $(echo $CONF | jq -r '.servers_zk.names[]') )
 MONITOR_NAMES=( $(echo $CONF | jq -r '.aws[].name') )
 
+#influxdb 
+INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=$DB_NAME  --query 'Reservations[*].Instances[*]' | jq 'flatten')
+INST_DNS_DB=$(echo $INST | jq -r '.[].PublicDnsName')
+ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@$INST_DNS_DB "./influxdb-1.7.9-1/usr/bin/influxd &"
+
 #zk_servers
 for (( i=0; i<${#ZK_SRV_NAMES[@]}; i++ ));
 do

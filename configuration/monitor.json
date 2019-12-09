@@ -8,6 +8,10 @@
     "port_client": "2181",
     "ports_server": ":2888:3888"
   },
+   "db" : {
+     "name": "master"
+  }
+   ,
   "aws": [
     {
       "name": "master",
