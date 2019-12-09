@@ -6,11 +6,11 @@ ZONE="us-central1-a"
 GROUP="instance-group-1"
 source ./conf/key.sh
 
-echo "Generating VM instance..."
-./create_vm.sh $1
+#echo "Generating VM instance..."
+#./create_vm.sh $1
 
-echo "Integration in instances group..."
-gcloud compute instance-groups unmanaged add-instances $GROUP --zone=$ZONE --instances $1 -q
+#echo "Integration in instances group..."
+#gcloud compute instance-groups unmanaged add-instances $GROUP --zone=$ZONE --instances $1 -q
 
 echo "Connecting..."
 gcloud compute scp --zone=$ZONE initialize_instance.sh $1:~ -q
