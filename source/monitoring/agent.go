@@ -93,7 +93,7 @@ func main() {
  	go checkMembersDead(zkBridge, members[next])
 
  	if (aws) {
- 		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, StatPath)
+ 		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, "Average", monitorIntervalSeconds)
  		myRestarter = restarter.NewAws()
  	} else {
  		monitorBridge = monitor.NewGce(GcloudMetricsJsonPath, InstancesJsonPath)

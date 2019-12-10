@@ -16,7 +16,8 @@ const (
 
 type AwsMonitor struct {
  	client *cloudwatch.CloudWatch
- 	stat AwsStat
+ 	stat string
+ 	period int64
  	metrics []AwsMetric
 }
 
@@ -33,12 +34,6 @@ type AwsMetricJson struct{
  	Monitoring bool
  	DimensionNames []string
  	DimensionValues []string
-}
-
-//Used by json
-type AwsStat struct{
- 	Stat string
- 	Period int64
 }
 
 func cloudwatchClient(awsRegion string) *cloudwatch.CloudWatch{
@@ -120,17 +115,21 @@ func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([
 					MetricName: &monitor.metrics[i].Name,
 					Dimensions: monitor.metrics[i].Dimensions,
 				},
-				Period: &monitor.stat.Period,
-				Stat:   &monitor.stat.Stat,
+				Period: &monitor.period,
+				Stat:   &monitor.stat,
 			},
 		}
 	}
+
+	fmt.Printf("query: %v\n", query)
 
 	resp, err := monitor.client.GetMetricData(&cloudwatch.GetMetricDataInput{
 		EndTime:           &endTime,
 		StartTime:         &startTime,
 		MetricDataQueries: query,
 	})
+
+	fmt.Printf("resp: %v\n", resp)
 
 	if err != nil {
 		return nil, fmt.Errorf("Error in GetMetricData, %v", err)
@@ -165,15 +164,15 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	return res, nil 
 }
 
-func NewAws(ec2MetricJsonPath, ec2InstPath, s3MetricPath, statPath string) *AwsMonitor {
+func NewAws(ec2MetricJsonPath string, ec2InstPath string, s3MetricPath string,  stat string, period int64) *AwsMonitor {
 	var ec2MetricsJ, s3MetricsJ []AwsMetricJson
 	var instanceIds []string
-	var stat AwsStat
+	//var stat AwsStat
 
 	utility.ImportJson(ec2MetricJsonPath, &ec2MetricsJ)
  	utility.ImportJson(ec2InstPath, &instanceIds)
  	utility.ImportJson(s3MetricPath, &s3MetricsJ)
- 	utility.ImportJson(statPath, &stat)
+ 	//utility.ImportJson(statPath, &stat)
 
  	ec2Metrics, _ := importMetrics(ec2MetricsJ)
  	s3Metrics, s3Dim := importMetrics(s3MetricsJ)
@@ -183,5 +182,5 @@ func NewAws(ec2MetricJsonPath, ec2InstPath, s3MetricPath, statPath string) *AwsM
 
 	svc := cloudwatchClient(awsRegion)
 
-	return &AwsMonitor{svc, stat, metrics}
+	return &AwsMonitor{svc, stat, period, metrics}
 }
