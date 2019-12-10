@@ -19,6 +19,7 @@ type MonitorBridge interface {
 
 func printMetricDatas(metricsDatas []MetricData){
     for i:=0; i<len(metricsDatas); i++{
+    	fmt.Println(metricsDatas[i].TagName + ":" + metricsDatas[i].TagValue)
         fmt.Println(metricsDatas[i].Label)
         for j:=0; j<len(metricsDatas[i].Timestamps); j++{
             fmt.Println("time: ", (metricsDatas[i].Timestamps[j]).String(),"value: ", metricsDatas[i].Values[j])
