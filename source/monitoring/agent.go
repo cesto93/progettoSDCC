@@ -36,13 +36,11 @@ import (
     PrometheusMetricsJsonPath = "../../configuration/metrics_prometheus.json"
  )
 
- func saveMetrics(monitorBridge monitor.MonitorBridge, dbBridge *db.DbBridge, interval time.Duration) {
- 	end := time.Now()
- 	start := end.Add(-interval) 
- 	ec2Data, err := monitorBridge.GetMetrics(start, end)
+ func saveMetrics(monitorBridge monitor.MonitorBridge, dbBridge *db.DbBridge, start time.Time, end time.Time) {
+ 	data, err := monitorBridge.GetMetrics(start, end)
  	utility.CheckError(err)
- 	printMetrics(ec2Data)
- 	err = dbBridge.SaveMetrics(ec2Data)
+ 	//printMetrics(data)
+ 	err = dbBridge.SaveMetrics(data)
  	utility.CheckError(err)
  }
 
@@ -52,7 +50,7 @@ import (
  	}
  }
 
- func printMetrics(results []monitor.MetricData) {
+ /*func printMetrics(results []monitor.MetricData) {
  	fmt.Println("Metrics:\n")
 	for _, metricdata := range results {
 		fmt.Println(metricdata.Label)
@@ -60,7 +58,7 @@ import (
 			fmt.Printf("%v %v\n", (metricdata.Timestamps[j]).String(), metricdata.Values[j])
 		}
 	} 
-}
+}*/
 
 func main() {
 	var zkServerAddresses, members []string
@@ -69,7 +67,6 @@ func main() {
 	var myRestarter restarter.Restarter
 	var aws,tryed bool
 	var index, next int
-	var now, nextMeasure time.Time
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
 	flag.Parse()
@@ -111,23 +108,26 @@ func main() {
 	monitorPrometheus.GetMetrics(startTime, endTime)
 
 	monitorInterval := monitorIntervalSeconds * time.Second
-	nextMeasure = now.Add(-monitorInterval)
+	now := time.Now()
+	lastMeasure := now.Add(-monitorInterval)
+	nextMeasure := now
+
 	for {
 		time.Sleep(time.Second * restartIntervalSecond)
 		now = time.Now()
 		if zkBridge.IsDead != false {
 			fmt.Println("This is is dead: " + members[next])
 			tryed, err = myRestarter.Restart(members[next])
-			fmt.Println(err)
-			//utility.CheckError(err)
+			utility.CheckErrorNonFatal(err)
 
 			if tryed {
 				fmt.Println("Tried to restart")
 			}
 		}
 		if (now.After(nextMeasure)) {
-			saveMetrics(monitorBridge, dbBridge, monitorInterval)
-			nextMeasure = now.Add(monitorInterval)
+			saveMetrics(monitorBridge, dbBridge, lastMeasure, nextMeasure)
+			lastMeasure = lastMeasure.Add(monitorInterval)
+			nextMeasure = nextMeasure.Add(monitorInterval)
 		}
 	}
  }

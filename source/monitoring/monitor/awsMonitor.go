@@ -85,7 +85,7 @@ func loadDimensionsSameName(metrics []AwsMetric, dimensionName string, dimension
 	return metrics
 }
 
-//UNUSED
+/*//UNUSED
 func loadDimensions(metrics []AwsMetric, dimensionNames []string, dimensionValues []string) []AwsMetric{
 	for i, _ := range metrics {
 		for j,_ := range dimensionNames {
@@ -97,7 +97,7 @@ func loadDimensions(metrics []AwsMetric, dimensionNames []string, dimensionValue
 		}
 	}
 	return metrics
-}
+}*/
 
 //DEBUG
 func printAwsMetrics(results []*cloudwatch.MetricDataResult) {
