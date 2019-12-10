@@ -21,6 +21,8 @@ Content-Disposition: attachment; filename="userdata.txt"
 
 sudo /home/ec2-user/zookeeper/bin/zkServer.sh start
 sleep 5
+/home/ec2-user/influxdb-1.7.9-1/usr/bin/influxd &
+sleep 3
 cd /home/ec2-user/go/src/progettoSDCC/bin
 ./agent -aws
 --//
