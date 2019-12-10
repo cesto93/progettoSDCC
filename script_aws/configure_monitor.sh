@@ -12,12 +12,14 @@ PORT_DB="8086"
 
 #getting instance DNS and ID
 declare -A ID_MAP_J
+declare -A IP_MAP_J
 for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
 do
 	INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${MONITOR_NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 	INST_DNS[$i]=$(echo $INST | jq -r '.[].PublicDnsName')
 	ID_MONITOR_J[$i]=$(echo $INST | jq '[.[].InstanceId]')
 	ID_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].InstanceId]')
+	IP_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].NetworkInterfaces[].Association.PublicIp]')
 done
 
 for (( i=0; i<${#ZK_SRV_NAMES[@]}; i++ ));
@@ -43,8 +45,10 @@ do
 	for (( j=0; j<${#MONITORED_NAMES[@]}; j++ ));
 	do
 		ID_MONITORED_J[$j]=$(echo ${ID_MAP_J[${MONITORED_NAMES[$j]}]} | jq -s '.[]' )
+		IP_MONITORED_J[$j]=$(echo ${IP_MAP_J[${MONITORED_NAMES[$j]}]} | jq -s '.[]' )
 	done
 	ID_MONITORED_M_J=$(echo ${ID_MONITORED_J[@]} | jq -s 'add')
+	IP_MONITORED_M_J=$(echo ${IP_MONITORED_J[@]} | jq -s 'add')
 	ssh  -q -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS[$i]} \
 "
 cd ./go/src/progettoSDCC
@@ -56,6 +60,8 @@ echo '$ZK_SRV_IPS_J' | tee ./configuration/generated/zk_servers_addrs.json
 echo '$ID_MONITORED_M_J' | tee ./configuration/generated/ec2_inst.json
 echo '$ADDR_DB_J' | tee ./configuration/generated/db_addr.json
 echo '$i' | tee ./configuration/generated/id_monitor.json
+#prometheus
+echo '$IP_MONITORED_M_J' | tee ./configuration/generated/instances.json
 echo 'finished ${MONITOR_NAMES[$i]} configuration' 
 " &
 done 

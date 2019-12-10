@@ -13,9 +13,10 @@ for (( i=0; i<${#NAMES[@]}; i++ ));
 do
 	INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 	INST_DNS[$i]=$(echo $INST | jq -r '.[].PublicDnsName')
-	echo -e "COPYING SSH KEY FOR GIT DEPLOYMENT TO ${INST_DNS[$i]} \n"
-	scp  -q -o "StrictHostKeyChecking=no" -i $KEY_POS $LOCAL_DIR/$GIT_KEY_FILE  ec2-user@${INST_DNS[$i]}:$AWS_DIR
-	scp -q -o "StrictHostKeyChecking=no" -i $KEY_POS $LOCAL_DIR/config  ec2-user@${INST_DNS[$i]}:$AWS_DIR
+	#echo -e "COPYING SSH KEY FOR GIT DEPLOYMENT TO ${INST_DNS[$i]} \n"
+	#scp  -q -o "StrictHostKeyChecking=no" -i $KEY_POS $LOCAL_DIR/$GIT_KEY_FILE  ec2-user@${INST_DNS[$i]}:$AWS_DIR
+	#scp -q -o "StrictHostKeyChecking=no" -i $KEY_POS $LOCAL_DIR/config  ec2-user@${INST_DNS[$i]}:$AWS_DIR
+	scp -q -o "StrictHostKeyChecking=no" -i $KEY_POS ./prometheus.sh  ec2-user@${INST_DNS[$i]}:/home/ec2-user/
 	konsole --new-tab --noclose -e ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS[$i]} \
 "
 sudo yum update -y -q
@@ -26,12 +27,30 @@ go get -u cloud.google.com/go/monitoring/apiv3
 go get -u github.com/samuel/go-zookeeper/zk
 go get github.com/influxdata/influxdb1-client/v2
 
+sudo ./prometheus.sh
+
+# Generating Prometheus configuration file
+sudo tee /etc/prometheus/prometheus.yml <<EOF 1> /dev/null
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+scrape_configs:
+  - job_name: 'MonitorInstances'
+    file_sd_configs:
+      - files:
+        - /home/ec2-user/go/src/progettoSDCC/configuration/generated/instances.json
+EOF
+
 cd ./go/src
 sudo rm -rf progettoSDCC
 git clone git@github.com:cesto93/progettoSDCC
 mkdir -p ./progettoSDCC/configuration/generated
 mkdir -p ./progettoSDCC/configuration/log
-echo 'finished installing preliminary dependency on  ${NAMES[$i]}' 
+
+echo 'finished installing preliminary dependency on  ${NAMES[$i]}'
 " &
 done
 

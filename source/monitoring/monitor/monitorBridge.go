@@ -7,6 +7,8 @@ import (
 
 type MetricData struct {
 	Label string
+	TagName string
+	TagValue string
 	Timestamps []time.Time
 	Values []interface{}
 }

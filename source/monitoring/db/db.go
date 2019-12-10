@@ -33,16 +33,16 @@ func (d *DbBridge) SaveMetrics(data []monitor.MetricData) error {
 	})
 
 	// Create a point and add to batch
-	/*tags := map[string]string{"cpu": "cpu-total"}
-	fields := map[string]interface{}{
+	/*fields := map[string]interface{}{
 		"idle":   10.1,
 		"system": 53.3,
 		"user":   46.6,
 	}*/
 	for _, metric := range data {
 		for i, _ := range metric.Values {
-			fields := map[string]interface{}{"avg": metric.Values[i]}
-			pt, err := client.NewPoint(metric.Label, nil, fields, metric.Timestamps[i])
+			tags := map[string]string{metric.TagName: metric.TagValue}
+			fields := map[string]interface{}{"value": metric.Values[i]}
+			pt, err := client.NewPoint(metric.Label, tags, fields, metric.Timestamps[i])
 			if err != nil {
 				return fmt.Errorf("error in newpoint generation %v", err)
 			}

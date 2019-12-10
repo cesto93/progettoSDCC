@@ -11,7 +11,19 @@ In order to launch the script you need to install
 ## AWS setup
 For setup the instance to monitoring and wordcount application you need to:
 
-*
+* Set a IAM role with:
+    - ec2fullaccess 
+    - s3fullaccess
+    - cloudwatchfullaccess
+* Set a security group with the inbound open ports:
+    - 2888,3888,2181 (zookeeper)
+    - 22 (ssh) 
+    - 1050-1060 (rpc)
+    - 9090, 9100 (prometheus)
+* Create the instance and attach the IAM role and security group, also add names to them
+* Set the names of the instance in the aws section of the json files /configuration/monitor.json /configuration/word_count.json
+* Set the metrics to measure by setting /configuration/metrics_ec2.json /configuration/metrics_s3.json
+* launch script /script_aws/depency.sh to install depency
 
 ## GC setup
 In order to setup an instance running on google compute engine, you need to:
@@ -53,3 +65,4 @@ The ip of the nodes are gathered by the script files and parse in a json file at
 To test the app in local or if you want to manually set the ip use this file directly.  
 
 ##Monitoring
+*To configure aws monitoring run script ./script_aws/configure_monitoring.sh
