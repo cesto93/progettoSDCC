@@ -10,11 +10,13 @@ HDD="20GB"
 IMG="ubuntu-1804-bionic-v20191113"
 IMG_PROJ="ubuntu-os-cloud"
 
-
-gcloud beta compute --project=$PROJ instances \
-create $1 --zone=$ZONE --machine-type=$MTYPE \
---subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE \
---service-account=$SERV@$PROJ.iam.gserviceaccount.com \
---scopes=https://www.googleapis.com/auth/cloud-platform --tags=http-server,https-server \
---image=$IMG --image-project=$IMG_PROJ --boot-disk-size=$HDD \
---boot-disk-type=pd-standard --boot-disk-device-name=$1 --reservation-affinity=any -q
+for i in $@;
+do
+	gcloud beta compute --project=$PROJ instances \
+	create $i --zone=$ZONE --machine-type=$MTYPE \
+	--subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE \
+	--service-account=$SERV@$PROJ.iam.gserviceaccount.com \
+	--scopes=https://www.googleapis.com/auth/cloud-platform --tags=http-server,https-server \
+	--image=$IMG --image-project=$IMG_PROJ --boot-disk-size=$HDD \
+	--boot-disk-type=pd-standard --boot-disk-device-name=$1 --reservation-affinity=any -q
+done

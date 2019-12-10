@@ -30,5 +30,18 @@
       "monitored": ["worker-3"]
     }
   ],
-  "gc": []
+  "gc": [
+	{
+      "name": "worker-4",
+      "monitored": ["worker-4"]
+    },
+	{
+      "name": "worker-5",
+      "monitored": ["worker-5"]
+    },
+	{
+      "name": "worker-6",
+      "monitored": ["worker-4", "worker-6"]
+    }
+	]
 }
