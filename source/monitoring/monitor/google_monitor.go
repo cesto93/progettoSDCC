@@ -51,7 +51,7 @@ func (monitor *gceMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 
         for i:=0; i<len(monitor.metrics); i++ {
             metricType:=concatenate(monitor.metrics[i], monitor.instances)
-            //fmt.Println("Metric: ", monitor.metrics[i].Name, ", Labels: ", monitor.metrics[i].Labels)
+            fmt.Println("Metric: ", monitor.metrics[i].Name, ", Labels: ", monitor.metrics[i].Labels)
 
             req = &monitoringpb.ListTimeSeriesRequest{
                 Name:   "projects/" + ProjectID,
@@ -65,6 +65,7 @@ func (monitor *gceMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
             iter := monitor.client.ListTimeSeries(monitor.ctx, req)
             for {
                 resp, err := iter.Next()
+                //fmt.Println(resp)
                 if err == iterator.Done {
                     break
                 }
@@ -72,8 +73,11 @@ func (monitor *gceMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
                     fmt.Errorf("could not read time series value, %v ", err)
                 }
                 r.Label= monitor.metrics[i].Name
+                //fmt.Println(resp.GetResource().GetLabels()["instance_id"])
                 //r.Values= make([]interface{}, len(resp.GetPoints()))
                 r.Timestamps= make([]time.Time, len(resp.GetPoints()))
+                r.TagName="instance_id"
+                r.TagValue=resp.GetResource().GetLabels()["instance_id"]
                 for k:=0; k<len(resp.GetPoints()); k++{
                     r.Timestamps[k]= time.Unix(resp.GetPoints()[k].GetInterval().GetEndTime().GetSeconds(), 0)
                     //r.Values[k]= resp.GetPoints()[k].GetValue()
@@ -118,11 +122,11 @@ func concatenate(metric Metric, instances []string) string {
 	for i:=0; i<len(metric.Labels); i++ {
 		s+=" AND metric.labels." + metric.Labels[i].Name + "=\"" + metric.Labels[i].Value + "\""
 	}
-    s+=" AND resource.labels.instance_id= one_of("
+    s+=" AND ("
     for i:=0; i<len(instances)-1; i++ {
-        s+="\"" + instances[i] + "\" , "
+        s+="resource.labels.instance_id= \"" + instances[i] + "\" OR "
     }
-    s+="\"" + instances[len(instances)-1] + "\")"
+    s+="resource.labels.instance_id= \"" + instances[len(instances)-1] + "\")"
 	return s
 }
 

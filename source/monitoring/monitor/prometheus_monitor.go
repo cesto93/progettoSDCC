@@ -5,14 +5,21 @@ import (
         "fmt"
         "net/http"
         "time"
+        "strings"
         //"os"
         //"log"
         "encoding/json"
         "progettoSDCC/source/utility"
 )
 
+type ResultMetric struct {
+        Name string `json:"__name__"`
+        Job string `json:"job"`
+        Instance string `json:"instance"`
+}
+
 type Prometheus_Result struct {
-        Metric interface{} `json:"metric"`
+        Metric ResultMetric `json:"metric"`
         Value [][]interface{} `json:"values"`
 }
 
@@ -95,8 +102,10 @@ func (monitor *PrometheusMonitor) GetMetrics(startTime time.Time, endTime time.T
                 }
                 //fmt.Println(prom_resp)
                 for k:=0; k<len(prom_resp.Data.Result); k++{
-                        //fmt.Println(prom_resp.Data.Result[k])
+                        //fmt.Println(prom_resp.Data.Result[k].Metric.Instance)
                         r.Label = monitor.Metric[i].Name
+                        r.TagName = "instance_ip"
+                        r.TagValue = strings.Split(prom_resp.Data.Result[k].Metric.Instance, ":")[0]
                         r.Timestamps = make([]time.Time, len(prom_resp.Data.Result[k].Value))
                         r.Values = make([]interface{}, len(prom_resp.Data.Result[k].Value))
                         for j:=0; j<len(prom_resp.Data.Result[k].Value); j++{
