@@ -1,5 +1,5 @@
 {
-  "servers_zk": {
+  "servers_zk_aws": {
     "names": [
       "master",
       "worker-1",
@@ -8,10 +8,18 @@
     "port_client": "2181",
     "ports_server": ":2888:3888"
   },
+  "servers_zk_gce": {
+    "names": [
+      "worker-4",
+      "worker-5",
+      "worker-6"
+    ],
+    "port_client": "2181",
+    "ports_server": ":2888:3888"
+  },
    "db" : {
      "name": "master"
-  }
-   ,
+  },
   "aws": [
     {
       "name": "master",

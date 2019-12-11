@@ -18,12 +18,22 @@ echo "installing project dependency..."
 go get -u cloud.google.com/go/monitoring/apiv3
 go get -u github.com/aws/aws-sdk-go
 go get -u github.com/samuel/go-zookeeper/zk
+go get github.com/influxdata/influxdb1-client/v2
+
+echo "installing zookeeper"
+sudo apt-get install default-jdk -y -q 1> /dev/null
+sudo wget -q -nc https://www-us.apache.org/dist/zookeeper/zookeeper-3.5.6/apache-zookeeper-3.5.6-bin.tar.gz
+sudo tar -xzf  apache-zookeeper-3.5.6-bin.tar.gz
+sudo mv -n apache-zookeeper-3.5.6-bin ./zookeeper
+sudo mkdir -p /var/lib/zookeeper
+
 
 echo "installing project..."
 cd ./go/src
 sudo rm -rf progettoSDCC
 git clone git@github.com:cesto93/progettoSDCC -q
 mkdir -p ./progettoSDCC/configuration/generated
+mkdir -p ./progettoSDCC/configuration/log
 
 echo "installing stackdriver-agent..."
 curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
@@ -33,7 +43,7 @@ rm install-monitoring-agent.sh
 echo "installing prometheus..."
 sudo groupadd --system prometheus
 sudo useradd --no-create-home -s /sbin/nologin --system -g prometheus prometheus
-sudo mkdir /var/lib/prometheus
+sudo mkdir -p /var/lib/prometheus
 for i in rules rules.d files_sd; do sudo mkdir -p /etc/prometheus/${i}; done
 mkdir -p /tmp/prometheus && cd /tmp/prometheus
 curl -s https://api.github.com/repos/prometheus/prometheus/releases/latest \

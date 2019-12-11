@@ -1,13 +1,12 @@
 #!/bin/bash
-source ./conf/key.sh
 CONF_MONITOR=$(<../configuration/monitor.json)
 
 #importing configuration
-ZK_SRV_NAMES=( $(echo $CONF_MONITOR | jq -r '.servers_zk.names[]') )
 MONITOR_NAMES=( $(echo $CONF_MONITOR | jq -r '.aws[].name') )
 DB_NAME=$(echo $CONF_MONITOR | jq -r '.db.name')
-ZK_CLIENT_PORT=$(echo $CONF_MONITOR | jq -r '.servers_zk.port_client')
-ZK_SERVER_PORTS=$(echo $CONF_MONITOR | jq -r '.servers_zk.ports_server')
+ZK_SRV_NAMES=( $(echo $CONF_MONITOR | jq -r '.servers_zk_aws.names[]') )
+ZK_CLIENT_PORT=$(echo $CONF_MONITOR | jq -r '.servers_zk_aws.port_client')
+ZK_SERVER_PORTS=$(echo $CONF_MONITOR | jq -r '.servers_zk_aws.ports_server')
 PORT_DB="8086"
 
 #getting instance DNS and ID
@@ -21,7 +20,9 @@ do
 	ID_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].InstanceId]')
 	IP_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].NetworkInterfaces[].Association.PublicIp]')
 done
+IDS_MONITOR_J=$(echo ${ID_MONITOR_J[@]} | jq -s 'add | flatten')
 
+#getting zk_srv data
 for (( i=0; i<${#ZK_SRV_NAMES[@]}; i++ ));
 do
 	INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${ZK_SRV_NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
@@ -29,14 +30,14 @@ do
 	ZK_SRV_IP_J[$i]=$(echo $INST | jq -r '[.[].NetworkInterfaces[].PrivateIpAddress]')
 	INST_DNS_SRV[$i]=$(echo $INST | jq -r '.[].PublicDnsName')
 done
+ZK_SRV_IPS_J=$(echo ${ZK_SRV_IP_J[@]} | jq -s --arg port ":$ZK_CLIENT_PORT" ' add |  flatten |[.[] + $port] ') 
 
+#getting db data
 INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=$DB_NAME  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 IP_DB=$(echo $INST | jq -r '.[].NetworkInterfaces[].Association.PublicIp')
 ADDR_DB="$IP_DB:$PORT_DB"
-
-IDS_MONITOR_J=$(echo ${ID_MONITOR_J[@]} | jq -s 'add | flatten')
-ZK_SRV_IPS_J=$(echo ${ZK_SRV_IP_J[@]} | jq -s --arg port ":$ZK_CLIENT_PORT" ' add |  flatten |[.[] + $port] ') 
 ADDR_DB_J=$(jq -n --arg addr "$ADDR_DB" '$addr' ) 
+
 
 #configuration of json parameters and project pull and compile
 for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
@@ -57,9 +58,9 @@ go build -o ./bin/agent ./source/monitoring/agent.go
 
 echo '$IDS_MONITOR_J' | tee ./configuration/generated/zk_agent.json
 echo '$ZK_SRV_IPS_J' | tee ./configuration/generated/zk_servers_addrs.json
+echo '$i' | tee ./configuration/generated/id_monitor.json
 echo '$ID_MONITORED_M_J' | tee ./configuration/generated/ec2_inst.json
 echo '$ADDR_DB_J' | tee ./configuration/generated/db_addr.json
-echo '$i' | tee ./configuration/generated/id_monitor.json
 #prometheus
 echo '$IP_MONITORED_M_J' | tee ./configuration/generated/instances.json
 echo 'finished ${MONITOR_NAMES[$i]} configuration' 

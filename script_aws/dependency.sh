@@ -81,6 +81,7 @@ sudo yum install java-1.8.0-openjdk -y -q
 sudo wget -q -nc https://www-us.apache.org/dist/zookeeper/zookeeper-3.5.6/apache-zookeeper-3.5.6-bin.tar.gz
 sudo tar -xzf  apache-zookeeper-3.5.6-bin.tar.gz
 sudo mv -n apache-zookeeper-3.5.6-bin ./zookeeper
+sudo mkdir -p /var/lib/zookeeper
 echo 'finished installing zk_server on ${ZK_SRV_NAMES[$i]}' 
 " &
 done

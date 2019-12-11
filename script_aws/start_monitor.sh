@@ -3,7 +3,7 @@ source ./conf/key.sh
 CONF=$(<../configuration/monitor.json)
 
 #importing configuration
-ZK_SRV_NAMES=( $(echo $CONF | jq -r '.servers_zk.names[]') )
+ZK_SRV_NAMES=( $(echo $CONF | jq -r '.servers_zk_aws.names[]') )
 MONITOR_NAMES=( $(echo $CONF | jq -r '.aws[].name') )
 DB_NAME=$(echo $CONF | jq -r '.db.name')
 
