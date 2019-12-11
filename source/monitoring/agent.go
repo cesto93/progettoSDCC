@@ -102,10 +102,10 @@ func main() {
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
 
  	//get last five minutes time range
-	startTime := time.Now().UTC().Add(time.Minute * -5)
+	/*startTime := time.Now().UTC().Add(time.Minute * -5)
     endTime := time.Now().UTC()
  	monitorBridge.GetMetrics(startTime, endTime)
-	monitorPrometheus.GetMetrics(startTime, endTime)
+	monitorPrometheus.GetMetrics(startTime, endTime)*/
 
 	monitorInterval := monitorIntervalSeconds * time.Second
 	now := time.Now()
@@ -126,6 +126,7 @@ func main() {
 		}
 		if (now.After(nextMeasure)) {
 			saveMetrics(monitorBridge, dbBridge, lastMeasure, nextMeasure)
+			saveMetrics(monitorPrometheus, dbBridge, lastMeasure, nextMeasure)
 			lastMeasure = lastMeasure.Add(monitorInterval)
 			nextMeasure = nextMeasure.Add(monitorInterval)
 		}
