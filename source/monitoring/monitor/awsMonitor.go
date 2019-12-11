@@ -26,6 +26,7 @@ type AwsMetric struct {
 	Namespace string
  	Name string
  	Dimensions []*cloudwatch.Dimension
+ 	Unit string
 }
 
 //Used by json
@@ -117,6 +118,7 @@ func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([
 				},
 				Period: &monitor.period,
 				Stat:   &monitor.stat,
+				Unit: &monitor.metrics[i].Unit,
 			},
 		}
 	}
