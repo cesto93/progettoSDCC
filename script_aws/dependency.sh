@@ -48,7 +48,8 @@ cd ./go/src
 sudo rm -rf progettoSDCC
 git clone git@github.com:cesto93/progettoSDCC
 mkdir -p ./progettoSDCC/configuration/generated
-mkdir -p ./progettoSDCC/configuration/log
+mkdir -p ./progettoSDCC/log
+mkdir -p ./progettoSDCC/bin
 
 echo 'finished installing preliminary dependency on  ${NAMES[$i]}'
 " &

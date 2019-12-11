@@ -33,7 +33,8 @@ cd ./go/src
 sudo rm -rf progettoSDCC
 git clone git@github.com:cesto93/progettoSDCC -q
 mkdir -p ./progettoSDCC/configuration/generated
-mkdir -p ./progettoSDCC/configuration/log
+mkdir -p ./progettoSDCC/log
+mkdir -p ./progettoSDCC/bin
 
 echo "installing stackdriver-agent..."
 curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
