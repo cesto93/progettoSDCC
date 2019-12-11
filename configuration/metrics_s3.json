@@ -2,7 +2,8 @@
   {
     "awsmetric" : {
     "name": "BucketSizeBytes",
-    "namespace" : "AWS/S3"
+    "namespace" : "AWS/S3",
+    "unit" : "Bytes"
     },
      "monitoring": true,
      "dimensionnames" : ["StorageType", "BucketName"],
@@ -11,7 +12,8 @@
   {
     "awsmetric" : {
     "name": "NumberOfObjects",
-    "namespace" : "AWS/S3"
+    "namespace" : "AWS/S3",
+    "unit" : "Count"
     },
      "monitoring": true,
      "dimensionnames" : ["StorageType", "BucketName"],
