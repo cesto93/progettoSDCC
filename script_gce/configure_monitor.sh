@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source ./conf/key.sh
 ZONE="us-central1-a"
 CONF_MONITOR=$(<../configuration/monitor.json)
 
@@ -32,6 +33,8 @@ for ((i=0; i<${#MONITOR_NAMES[@]}; i++));
 do
 	MONITORED_NAMES=( $(echo $CONF_MONITOR | jq -r --argjson index "$i" '.gc[$index].monitored[]') )
 	M=$(echo ${MONITORED_NAMES[@]})
+	gcloud compute scp --zone=$ZONE ../configuration/generated/gce_project_id.json  \
+	$USER@${MONITOR_NAMES[$i]}:$HOME_DIR/go/src/progettoSDCC/configuration/generated -q
 	gcloud compute ssh --zone=$ZONE ${MONITOR_NAMES[i]} --command \
 "
 echo configuration of monitor

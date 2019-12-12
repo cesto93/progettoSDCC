@@ -132,7 +132,7 @@ func printInstancesIdsAndMetrics(instances []string, metric []Metric){
     }
 }
 
-func NewGce(GcloudMetricsJsonPath string, InstancesJsonPath string, projectID string) *gceMonitor{
+func NewGce(projectID string, GcloudMetricsJsonPath string, InstancesJsonPath string) *gceMonitor{
     var metrics []Metric
     var instances []string
 
