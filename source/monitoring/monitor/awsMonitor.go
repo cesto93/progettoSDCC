@@ -131,8 +131,6 @@ func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([
 		MetricDataQueries: query,
 	})
 
-	fmt.Printf("resp: %v\n", resp)
-
 	if err != nil {
 		return nil, fmt.Errorf("Error in GetMetricData, %v", err)
 	}

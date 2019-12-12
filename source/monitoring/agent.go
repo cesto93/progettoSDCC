@@ -39,7 +39,7 @@ import (
  func saveMetrics(monitorBridge monitor.MonitorBridge, dbBridge *db.DbBridge, start time.Time, end time.Time) {
  	data, err := monitorBridge.GetMetrics(start, end)
  	utility.CheckError(err)
- 	//printMetrics(data)
+ 	printMetrics(data, start, end)
  	err = dbBridge.SaveMetrics(data)
  	utility.CheckError(err)
  }
@@ -50,15 +50,15 @@ import (
  	}
  }
 
- /*func printMetrics(results []monitor.MetricData) {
- 	fmt.Println("Metrics:\n")
+ func printMetrics(results []monitor.MetricData, start time.Time, end time.Time) {
+ 	fmt.Printf("Request from %v to %v: \n", start, end)
 	for _, metricdata := range results {
-		fmt.Println(metricdata.Label)
+		fmt.Printf("%v %v : %v\n", metricdata.Label, metricdata.TagName, metricdata.TagValue)
 		for j, _ := range metricdata.Timestamps {
 			fmt.Printf("%v %v\n", (metricdata.Timestamps[j]).String(), metricdata.Values[j])
 		}
 	} 
-}*/
+}
 
 func main() {
 	var zkServerAddresses, members []string
