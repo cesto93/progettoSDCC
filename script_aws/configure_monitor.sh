@@ -51,7 +51,15 @@ do
 		IP_MONITORED_J[$j]=$(echo ${IP_MAP_J[${MONITORED_NAMES[$j]}]} | jq -s '.[]' )
 	done
 	ID_MONITORED_M_J=$(echo ${ID_MONITORED_J[@]} | jq -s 'add')
-	IP_MONITORED_M_J=$(echo ${IP_MONITORED_J[@]} | jq -s 'add')
+	#IP_MONITORED_M_J=$(echo ${IP_MONITORED_J[@]} | jq -s 'add')
+	PROVA=$(echo ${IP_MONITORED_J[@]} | jq -r '.[]' )
+
+	#echo ${PROVA[@]} | jq -s '[{targets:[(.[] + ":9100")],labels:{job:"prometheus"}}]'
+	IP_MONITORED_M_J=$(echo $(for i in "${PROVA[@]}"
+								do
+									echo $i | jq -R '.'
+								done) | jq -s '[{targets:[(.[] + ":9100")],labels:{job:"prometheus"}}]')
+
 	ssh  -q -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS[$i]} \
 "
 echo 'starting  ${MONITOR_NAMES[$i]} configuration'
