@@ -47,7 +47,6 @@ func (monitor *gceMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
         var req *monitoringpb.ListTimeSeriesRequest
         var result []MetricData
         var r MetricData
-        var err error = nil
 
         for i:=0; i<len(monitor.metrics); i++ {
             metricType:=concatenate(monitor.metrics[i], monitor.instances)
@@ -70,7 +69,7 @@ func (monitor *gceMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
                     break
                 }
                 if err != nil {
-                    retutn nil, fmt.Errorf("could not read time series value, %v ", err)
+                    return nil, fmt.Errorf("could not read time series value, %v ", err)
                 }
                 r.Label= monitor.metrics[i].Name
                 //fmt.Println(resp.GetResource().GetLabels()["instance_id"])

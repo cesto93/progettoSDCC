@@ -3,7 +3,6 @@
 
 #ignore script used for testing
 /script_aws/test
-/compile.sh
 
 #ignore script conf files for aws e gc
 /script_aws/conf
