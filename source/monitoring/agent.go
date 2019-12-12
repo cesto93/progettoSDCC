@@ -179,7 +179,7 @@ func main() {
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
 
 	monitorInterval := monitorIntervalSeconds * time.Second
-	now := time.Now()
+	now := time.Now().Truncate(monitorInterval)
 	lastMeasure := now.Add(-monitorInterval)
 	nextMeasure := now
 

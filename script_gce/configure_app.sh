@@ -11,7 +11,7 @@ PORTS=( $(echo $CONF | jq -r '.gc[].port') )
 #workers
 for (( i=0; i<${#NAMES[@]}; i++ ));
 do
-IP[$i]=$(gcloud compute instances describe ${NAMES[$i]} --zone=$ZONE --format='get(.networkInterfaces[0].networkIP)')
+IP[$i]=$(gcloud compute instances describe ${NAMES[$i]} --zone=$ZONE --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
 WORKERS[$i]=$(jq -n --arg addr "${IP[$i]}" --arg port "${PORTS[$i]}" '[{"address": $addr, "port": $port}]')
 done
 WORKERS_J=$(echo ${WORKERS[@]} | jq -s 'add')
@@ -30,3 +30,5 @@ echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 echo '$i' | tee ./configuration/generated/id_worker.json
 " -q &
 done
+
+wait

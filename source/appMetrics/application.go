@@ -41,5 +41,6 @@ func ReadApplicationMetrics(path string) ([]WordCountMetricsData, error) {
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
+	os.Remove(path)
 	return res, err
 }
