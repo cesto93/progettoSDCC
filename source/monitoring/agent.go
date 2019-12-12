@@ -91,9 +91,13 @@ func main() {
  		time.Sleep(time.Second * restartIntervalSecond)
  		zkBridge, err = zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
  	}
- 	//utility.CheckError(err)
+ 	
  	err = zkBridge.RegisterMember(members[index], "info")
- 	utility.CheckError(err)
+ 	for err != nil {
+ 		fmt.Println(err)
+ 		time.Sleep(time.Second * restartIntervalSecond)
+ 		err = zkBridge.RegisterMember(members[index], "info")
+ 	}
  	go checkMembersDead(zkBridge, members[next])
 
  	if (aws) {
