@@ -123,7 +123,7 @@ func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([
 		}
 	}
 
-	fmt.Printf("query: %v\n", query)
+	//fmt.Printf("query: %v\n", query)
 
 	resp, err := monitor.client.GetMetricData(&cloudwatch.GetMetricDataInput{
 		EndTime:           &endTime,
@@ -167,12 +167,10 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 func NewAws(ec2MetricJsonPath string, ec2InstPath string, s3MetricPath string,  stat string, period int64) *AwsMonitor {
 	var ec2MetricsJ, s3MetricsJ []AwsMetricJson
 	var instanceIds []string
-	//var stat AwsStat
 
 	utility.ImportJson(ec2MetricJsonPath, &ec2MetricsJ)
  	utility.ImportJson(ec2InstPath, &instanceIds)
  	utility.ImportJson(s3MetricPath, &s3MetricsJ)
- 	//utility.ImportJson(statPath, &stat)
 
  	ec2Metrics, _ := importMetrics(ec2MetricsJ)
  	s3Metrics, s3Dim := importMetrics(s3MetricsJ)

@@ -41,7 +41,7 @@ import (
  	utility.CheckError(err)
  	printMetrics(data, start, end)
  	err = dbBridge.SaveMetrics(data)
- 	utility.CheckError(err)
+ 	utility.CheckErrorNonFatal(err)
  }
 
  func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge, id string) {
@@ -55,7 +55,7 @@ import (
 	for _, metricdata := range results {
 		fmt.Printf("%v %v : %v\n", metricdata.Label, metricdata.TagName, metricdata.TagValue)
 		for j, _ := range metricdata.Timestamps {
-			fmt.Printf("%v %v\n", (metricdata.Timestamps[j]).String(), metricdata.Values[j])
+			fmt.Printf("%v value: %v\n", (metricdata.Timestamps[j]).String(), metricdata.Values[j])
 		}
 	} 
 }
