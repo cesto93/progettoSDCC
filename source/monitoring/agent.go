@@ -9,6 +9,7 @@ import (
  	"progettoSDCC/source/monitoring/restarter"
  	"progettoSDCC/source/monitoring/db"
  	"progettoSDCC/source/utility"
+ 	"progettoSDCC/source/appMetrics"
  )
 
  const (
@@ -35,6 +36,8 @@ import (
     InstancesJsonPath = "../configuration/generated/instances_ids.json"
 
     PrometheusMetricsJsonPath = "../configuration/metrics_prometheus.json"
+
+    AppmetricsJsonPath = "../log/app_metrics.json"
  )
 
  func saveMetrics(monitorBridge monitor.MonitorBridge, dbBridge *db.DbBridge, start time.Time, end time.Time) {
@@ -42,7 +45,68 @@ import (
  	utility.CheckError(err)
  	printMetrics(data, start, end)
  	err = dbBridge.SaveMetrics(data)
- 	utility.CheckErrorNonFatal(err)
+ 	for err != nil {
+ 		err = dbBridge.SaveMetrics(data)
+ 	}
+ }
+
+ func saveAppMetrics(path string, dbBridge *db.DbBridge) {
+ 	var metrics []monitor.MetricData
+ 	var wordElaboratedApplication, elaborationTime, throughPutApplication, workers []interface{}
+	var timestamp []time.Time
+ 	raws, err := appMetrics.ReadApplicationMetrics(path)
+ 	utility.CheckError(err)
+ 	if (raws != nil) {
+ 		for _, raw := range raws {
+ 			wordElaboratedApplication = append(wordElaboratedApplication, raw.Metrics.WordElaboratedApplication)
+ 			elaborationTime = append(elaborationTime, raw.Metrics.ElaborationTime)
+ 			throughPutApplication = append(throughPutApplication, raw.Metrics.ThroughPutApplication)
+ 			workers = append(workers, raw.Metrics.Workers)
+ 			timestamp = append(timestamp, raw.Timestamp)
+ 		}
+
+ 		metrics = append(metrics, 
+ 		monitor.MetricData  {
+			Label : "WordElaboratedApplication",
+			TagName : "App",
+			TagValue : "Word_Count",
+			Timestamps: timestamp,
+			Values : wordElaboratedApplication,
+		} )
+
+		metrics = append(metrics, 
+ 		monitor.MetricData  {
+			Label : "ElaborationTime",
+			TagName : "App",
+			TagValue : "Word_Count",
+			Timestamps: timestamp,
+			Values : elaborationTime,
+		} )
+
+		metrics = append(metrics, 
+ 		monitor.MetricData  {
+			Label : "ThroughPutApplication",
+			TagName : "App",
+			TagValue : "Word_Count",
+			Timestamps: timestamp,
+			Values : throughPutApplication,
+		} )
+
+		metrics = append(metrics, 
+ 		monitor.MetricData  {
+			Label : "Workers",
+			TagName : "App",
+			TagValue : "Word_Count",
+			Timestamps: timestamp,
+			Values : workers,
+		} )
+
+ 		printMetrics(metrics, timestamp[0], timestamp[len(timestamp)-1])
+ 		err = dbBridge.SaveMetrics(metrics)
+ 		for err != nil {
+ 			err = dbBridge.SaveMetrics(metrics)
+ 		}
+ 	}
  }
 
  func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge, id string) {
@@ -115,7 +179,7 @@ func main() {
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
 
 	monitorInterval := monitorIntervalSeconds * time.Second
-	now := time.Now()
+	now := time.Now().Truncate(monitorInterval)
 	lastMeasure := now.Add(-monitorInterval)
 	nextMeasure := now
 
@@ -134,6 +198,7 @@ func main() {
 		if (now.After(nextMeasure)) {
 			saveMetrics(monitorBridge, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
 			saveMetrics(monitorPrometheus, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
+			saveAppMetrics(AppmetricsJsonPath, dbBridge)
 			lastMeasure = lastMeasure.Add(monitorInterval)
 			nextMeasure = nextMeasure.Add(monitorInterval)
 		}
