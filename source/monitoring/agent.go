@@ -54,57 +54,58 @@ import (
  	var metrics []monitor.MetricData
  	var wordElaboratedApplication, elaborationTime, throughPutApplication, workers []interface{}
 	var timestamp []time.Time
-
  	raws, err := appMetrics.ReadApplicationMetrics(path)
  	utility.CheckError(err)
- 	for _, raw := range raws {
- 		wordElaboratedApplication = append(wordElaboratedApplication, raw.Metrics.WordElaboratedApplication)
- 		elaborationTime = append(elaborationTime, raw.Metrics.ElaborationTime)
- 		throughPutApplication = append(throughPutApplication, raw.Metrics.ThroughPutApplication)
- 		workers = append(workers, raw.Metrics.Workers)
- 		timestamp = append(timestamp, raw.Timestamp)
- 	}
+ 	if (raws != nil) {
+ 		for _, raw := range raws {
+ 			wordElaboratedApplication = append(wordElaboratedApplication, raw.Metrics.WordElaboratedApplication)
+ 			elaborationTime = append(elaborationTime, raw.Metrics.ElaborationTime)
+ 			throughPutApplication = append(throughPutApplication, raw.Metrics.ThroughPutApplication)
+ 			workers = append(workers, raw.Metrics.Workers)
+ 			timestamp = append(timestamp, raw.Timestamp)
+ 		}
 
- 	metrics = append(metrics, 
- 	monitor.MetricData  {
-		Label : "WordElaboratedApplication",
-		TagName : "App",
-		TagValue : "Word_Count",
-		Timestamps: timestamp,
-		Values : wordElaboratedApplication,
-	} )
+ 		metrics = append(metrics, 
+ 		monitor.MetricData  {
+			Label : "WordElaboratedApplication",
+			TagName : "App",
+			TagValue : "Word_Count",
+			Timestamps: timestamp,
+			Values : wordElaboratedApplication,
+		} )
 
-	metrics = append(metrics, 
- 	monitor.MetricData  {
-		Label : "ElaborationTime",
-		TagName : "App",
-		TagValue : "Word_Count",
-		Timestamps: timestamp,
-		Values : elaborationTime,
-	} )
+		metrics = append(metrics, 
+ 		monitor.MetricData  {
+			Label : "ElaborationTime",
+			TagName : "App",
+			TagValue : "Word_Count",
+			Timestamps: timestamp,
+			Values : elaborationTime,
+		} )
 
-	metrics = append(metrics, 
- 	monitor.MetricData  {
-		Label : "ThroughPutApplication",
-		TagName : "App",
-		TagValue : "Word_Count",
-		Timestamps: timestamp,
-		Values : throughPutApplication,
-	} )
+		metrics = append(metrics, 
+ 		monitor.MetricData  {
+			Label : "ThroughPutApplication",
+			TagName : "App",
+			TagValue : "Word_Count",
+			Timestamps: timestamp,
+			Values : throughPutApplication,
+		} )
 
-	metrics = append(metrics, 
- 	monitor.MetricData  {
-		Label : "Workers",
-		TagName : "App",
-		TagValue : "Word_Count",
-		Timestamps: timestamp,
-		Values : workers,
-	} )
+		metrics = append(metrics, 
+ 		monitor.MetricData  {
+			Label : "Workers",
+			TagName : "App",
+			TagValue : "Word_Count",
+			Timestamps: timestamp,
+			Values : workers,
+		} )
 
- 	printMetrics(metrics, timestamp[0], timestamp[len(timestamp)-1])
- 	err = dbBridge.SaveMetrics(metrics)
- 	for err != nil {
+ 		printMetrics(metrics, timestamp[0], timestamp[len(timestamp)-1])
  		err = dbBridge.SaveMetrics(metrics)
+ 		for err != nil {
+ 			err = dbBridge.SaveMetrics(metrics)
+ 		}
  	}
  }
 
