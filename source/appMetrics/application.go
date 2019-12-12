@@ -2,8 +2,9 @@ package appMetrics
 
 import (
 	"time"
-	"progettoSDCC/source/utility"
 	"os"
+	"fmt"
+	"progettoSDCC/source/utility"
 )
 
 
@@ -23,11 +24,11 @@ func AppendApplicationMetrics(path string, metrics WordCountMetrics) error {
 	data, err := ReadApplicationMetrics(path)
 	last := WordCountMetricsData{metrics, time.Now()}
 	if err != nil {
-		if os.IsNotExist(err) {
-			data = []WordCountMetricsData{last}
-		} else {
-			return err
-		} 
+
+		return fmt.Errorf("failed to append application metrics : %v\n", err)
+	} 
+	if data == nil {
+		data = []WordCountMetricsData{last}	
 	} else {
 		data = append(data, last)
 	}
@@ -37,5 +38,8 @@ func AppendApplicationMetrics(path string, metrics WordCountMetrics) error {
 func ReadApplicationMetrics(path string) ([]WordCountMetricsData, error) {
 	var res []WordCountMetricsData
 	err := utility.ImportJson(path, &res)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
 	return res, err
 }
