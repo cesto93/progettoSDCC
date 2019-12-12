@@ -1,4 +1,5 @@
 #!/bin/bash
+source ./conf/key.sh
 CONF_MONITOR=$(<../configuration/monitor.json)
 
 #importing configuration
@@ -38,6 +39,7 @@ IP_DB=$(echo $INST | jq -r '.[].NetworkInterfaces[].Association.PublicIp')
 ADDR_DB="$IP_DB:$PORT_DB"
 ADDR_DB_J=$(jq -n --arg addr "$ADDR_DB" '$addr' ) 
 
+echo $ADDR_DB_J > ../configuration/generated/db_addr.json
 
 #configuration of json parameters and project pull and compile
 for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
@@ -52,6 +54,7 @@ do
 	IP_MONITORED_M_J=$(echo ${IP_MONITORED_J[@]} | jq -s 'add')
 	ssh  -q -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS[$i]} \
 "
+echo 'starting  ${MONITOR_NAMES[$i]} configuration'
 cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/agent ./source/monitoring/agent.go
@@ -63,7 +66,7 @@ echo '$ID_MONITORED_M_J' | tee ./configuration/generated/ec2_inst.json
 echo '$ADDR_DB_J' | tee ./configuration/generated/db_addr.json
 #prometheus
 echo '$IP_MONITORED_M_J' | tee ./configuration/generated/instances.json
-echo 'finished ${MONITOR_NAMES[$i]} configuration' 
+echo 'finished' 
 " &
 done 
 

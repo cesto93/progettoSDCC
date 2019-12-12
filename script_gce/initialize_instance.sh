@@ -7,6 +7,7 @@ sudo apt-get -q -y upgrade 1> /dev/null
 
 echo "installing git..."
 sudo apt-get install git -y -q 1> /dev/null
+sudo chmod 400 ./.ssh/sdcc_git
 
 echo "installing go..."
 sudo apt-get install golang -y -q 1> /dev/null
@@ -26,7 +27,6 @@ sudo wget -q -nc https://www-us.apache.org/dist/zookeeper/zookeeper-3.5.6/apache
 sudo tar -xzf  apache-zookeeper-3.5.6-bin.tar.gz
 sudo mv -n apache-zookeeper-3.5.6-bin ./zookeeper
 sudo mkdir -p /var/lib/zookeeper
-
 
 echo "installing project..."
 cd ./go/src

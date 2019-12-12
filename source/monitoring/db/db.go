@@ -51,6 +51,9 @@ func (d *DbBridge) SaveMetrics(data []monitor.MetricData) error {
 	}
 
 	// Write the batch
-	c.Write(bp)
+	err = c.Write(bp)
+	if err != nil {
+		return fmt.Errorf("error in db write %v", err)
+	}
 	return nil
 }

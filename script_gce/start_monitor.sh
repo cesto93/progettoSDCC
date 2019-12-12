@@ -20,7 +20,7 @@ for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
 do
 	INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${MONITOR_NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 	INST_DNS=$(echo $INST | jq -r '.[].PublicDnsName')
-	gcloud compute ssh --zone=$ZONE ${MONITOR_NAMES[i]} --command \
+	konsole --new-tab --noclose -e gcloud compute ssh --zone=$ZONE ${MONITOR_NAMES[i]} --command \
 "
 echo 'This is ${MONITOR_NAMES[$i]}'
 cd ./go/src/progettoSDCC/bin
