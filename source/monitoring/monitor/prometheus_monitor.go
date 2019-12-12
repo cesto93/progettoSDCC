@@ -49,9 +49,7 @@ type PrometheusMonitor struct {
         var prom_resp Prometheus_Resp
         var result []MetricData
         var r MetricData
-        var err error = nil
 
-        utility.ImportJson(PrometheusMetricsJsonPath, &metric)
         for i:=0; i<len(monitor.Metric); i++{
                 resp, err:= http.Get(monitor.Metric[i].Url)
                 if err != nil {
@@ -60,7 +58,7 @@ type PrometheusMonitor struct {
                 body, err := ioutil.ReadAll(resp.Body)
                 err = json.Unmarshal(body, &prom_resp)
                 if err != nil {
-                        fmt.Errorf("could not read time series value, %v ", err)
+                        return nil, fmt.Errorf("could not read time series value, %v ", err)
                 }
                 for j:=0; j<len(prom_resp.Data.Result); j++{
                         //fmt.Println(prom_resp.Data.Result[j].Metric)
@@ -74,7 +72,7 @@ type PrometheusMonitor struct {
                 }
         }
         printMetricDatas(result)
-        return result, err
+        return result, nil
 }*/
 
 //range queries
@@ -83,22 +81,21 @@ func (monitor *PrometheusMonitor) GetMetrics(startTime time.Time, endTime time.T
         var prom_resp Prometheus_Resp
         var result []MetricData
         var r MetricData
-        var err error = nil
 
         for i:=0; i<len(monitor.Metric); i++{
                 req:=monitor.Metric[i].Url + "&start=" + startTime.Format(time.RFC3339) + "&end=" + endTime.Format(time.RFC3339) + "&step=1m"
                 resp, err:= http.Get(req)
                 if err != nil {
-                        fmt.Errorf("could not get time series, %v ", err)
+                        return nil, fmt.Errorf("could not get time series, %v ", err)
                 }
                 body, err := ioutil.ReadAll(resp.Body)
                 if err != nil {
-                        fmt.Errorf("could not read time series , %v ", err)
+                        return nil, fmt.Errorf("could not read time series , %v ", err)
                 }
                 //fmt.Println(req)
                 err = json.Unmarshal(body, &prom_resp)
                 if err != nil {
-                        fmt.Errorf("could not read time series value, %v ", err)
+                        return nil, fmt.Errorf("could not read time series value, %v ", err)
                 }
                 //fmt.Println(prom_resp)
                 for k:=0; k<len(prom_resp.Data.Result); k++{
@@ -117,12 +114,12 @@ func (monitor *PrometheusMonitor) GetMetrics(startTime time.Time, endTime time.T
                 }
         }
         printMetricDatas(result)
-        return result, err
+        return result, nil
 }
 
 func NewPrometheus(PrometheusMetricsJsonPath string) *PrometheusMonitor {
         var metrics []Prometheus_Metric
 
-        utility.ImportJson(PrometheusMetricsJsonPath, &metrics)
+        utility.CheckError(utility.ImportJson(PrometheusMetricsJsonPath, &metrics))
         return &PrometheusMonitor{metrics}
 }
