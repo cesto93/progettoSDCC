@@ -10,7 +10,7 @@ import (
 	"progettoSDCC/source/application/word_counter/rpcUtils"
 	"progettoSDCC/source/application/word_counter/wordCountUtils"
 	"progettoSDCC/source/utility"
-	"progettoSDCC/source/metrics"
+	"progettoSDCC/source/appMetrics"
 )
 
 type Master int
@@ -191,8 +191,8 @@ func logData(words []wordCountUtils.WordCount, latency time.Duration, workers in
 	nWords := wordCountUtils.CountTotalWords(words)
 	sec := latency.Seconds()
 	throughput := float64(nWords) / sec
-	myMetrics := metrics.WordCountMetrics{nWords, sec, throughput, workers}
-	err:= metrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
+	myMetrics := appMetrics.WordCountMetrics{nWords, sec, throughput, workers}
+	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
 	utility.CheckErrorNonFatal(err)
 }
 
