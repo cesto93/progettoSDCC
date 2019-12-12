@@ -125,8 +125,8 @@ func main() {
 			}
 		}
 		if (now.After(nextMeasure)) {
-			saveMetrics(monitorBridge, dbBridge, lastMeasure, nextMeasure)
-			saveMetrics(monitorPrometheus, dbBridge, lastMeasure, nextMeasure)
+			saveMetrics(monitorBridge, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
+			saveMetrics(monitorPrometheus, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
 			lastMeasure = lastMeasure.Add(monitorInterval)
 			nextMeasure = nextMeasure.Add(monitorInterval)
 		}
