@@ -89,7 +89,7 @@ func main() {
  	for err != nil {
  		fmt.Println(err)
  		time.Sleep(time.Second * restartIntervalSecond)
- 		zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
+ 		zkBridge, err = zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
  	}
  	//utility.CheckError(err)
  	err = zkBridge.RegisterMember(members[index], "info")
