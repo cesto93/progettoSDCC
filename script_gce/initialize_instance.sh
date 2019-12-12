@@ -53,11 +53,11 @@ curl -s https://api.github.com/repos/prometheus/prometheus/releases/latest \
   | wget -qi -
 tar xvf prometheus*.tar.gz 1> /dev/null 2> /dev/null
 cd prometheus*/
-sudo mv prometheus promtool /usr/local/bin/
+sudo mv -n prometheus promtool /usr/local/bin/
 #sudo mv prometheus.yml  /etc/prometheus/prometheus.yml
-sudo mv consoles/ console_libraries/ /etc/prometheus/
+sudo mv -n consoles/ console_libraries/ /etc/prometheus/
 cd ~/
-sudo mv prometheus.yml  /etc/prometheus/prometheus.yml
+sudo mv -n prometheus.yml  /etc/prometheus/prometheus.yml
 rm -rf /tmp/prometheus
 sudo tee /etc/systemd/system/prometheus.service<<EOF 1> /dev/null 2> /dev/null
 
@@ -102,6 +102,7 @@ curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest \
 tar -xvf node_exporter*.tar.gz 1> /dev/null 2> /dev/null
 rm node_exporter-0.18.1.linux-amd64.tar.gz
 cd  node_exporter*/
+sudo systemctl stop node_exporter
 sudo cp node_exporter /usr/local/bin
 sudo tee /etc/systemd/system/node_exporter.service <<EOF 1> /dev/null 2> /dev/null
 [Unit]

@@ -168,9 +168,9 @@ func NewAws(ec2MetricJsonPath string, ec2InstPath string, s3MetricPath string,  
 	var ec2MetricsJ, s3MetricsJ []AwsMetricJson
 	var instanceIds []string
 
-	utility.ImportJson(ec2MetricJsonPath, &ec2MetricsJ)
- 	utility.ImportJson(ec2InstPath, &instanceIds)
- 	utility.ImportJson(s3MetricPath, &s3MetricsJ)
+	utility.CheckError(utility.ImportJson(ec2MetricJsonPath, &ec2MetricsJ))
+ 	utility.CheckError(utility.ImportJson(ec2InstPath, &instanceIds))
+ 	utility.CheckError(utility.ImportJson(s3MetricPath, &s3MetricsJ))
 
  	ec2Metrics, _ := importMetrics(ec2MetricsJ)
  	s3Metrics, s3Dim := importMetrics(s3MetricsJ)

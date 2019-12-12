@@ -70,7 +70,7 @@ func (monitor *gceMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
                     break
                 }
                 if err != nil {
-                    fmt.Errorf("could not read time series value, %v ", err)
+                    retutn nil, fmt.Errorf("could not read time series value, %v ", err)
                 }
                 r.Label= monitor.metrics[i].Name
                 //fmt.Println(resp.GetResource().GetLabels()["instance_id"])
@@ -87,7 +87,7 @@ func (monitor *gceMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
             }
         }
         printMetricDatas(result)
-        return result, err
+        return result, nil
 }
 
 func ParseValue(val *monitoringpb.TimeSeries) ([]interface{}){
@@ -147,16 +147,14 @@ func NewGce(GcloudMetricsJsonPath string, InstancesJsonPath string) *gceMonitor{
     var metrics []Metric
     var instances []string
 
-    utility.ImportJson(GcloudMetricsJsonPath, &metrics)
-    utility.ImportJson(InstancesJsonPath, &instances)
+    utility.CheckError(utility.ImportJson(GcloudMetricsJsonPath, &metrics))
+    utility.CheckError(utility.ImportJson(InstancesJsonPath, &instances))
 
     //printInstancesIdsAndMetrics(instances, metricMonitors)
 
     ctx := context.Background()
     c, err := monitoring.NewMetricClient(ctx)
-    if err != nil {
-            fmt.Errorf("could not connect to google monitor")
-    }
+    utility.CheckError(err)
     return &gceMonitor{c, ctx, metrics, instances}
 }
 
@@ -165,8 +163,6 @@ func (gcemonitor *gceMonitor) Test() {
     startTime := time.Now().UTC().Add(time.Minute * -5)
     endTime := time.Now().UTC()
     result, err:=gcemonitor.GetMetrics(startTime, endTime)
-	if err != nil {
-	   fmt.Errorf("could not read time series value, %v ", err)
-    }
+    utility.CheckErrorNonFatal(err)
     printMetricDatas(result)
 }
