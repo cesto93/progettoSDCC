@@ -24,16 +24,15 @@ import (
  	idMonitorPath = "../configuration/generated/id_monitor.json"
  	aliveNodePath = "/alive"
 
-
  	EC2MetricJsonPath = "../configuration/metrics_ec2.json"
  	EC2InstPath = "../configuration/generated/ec2_inst.json"
  	S3MetricPath = "../configuration/metrics_s3.json"
  	StatPath = "../configuration/monitoring_stat.json"
 
- 	GcloudMetricsJsonPath = "../../configuration/metrics_gce.json"
-    InstancesJsonPath = "../../configuration/generated/instances_ids.json"
+ 	GcloudMetricsJsonPath = "../configuration/metrics_gce.json"
+    InstancesJsonPath = "../configuration/generated/instances_ids.json"
 
-    PrometheusMetricsJsonPath = "../../configuration/metrics_prometheus.json"
+    PrometheusMetricsJsonPath = "../configuration/metrics_prometheus.json"
  )
 
  func saveMetrics(monitorBridge monitor.MonitorBridge, dbBridge *db.DbBridge, start time.Time, end time.Time) {
@@ -86,7 +85,7 @@ func main() {
  	next = (index + 1) % len(members) //this is the id of agent to restart if crash
  	fmt.Println(zkServerAddresses) //less than 3 servers dosen't make zookeeper fault tolerant
 
- 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath, members)
+ 	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
  	utility.CheckError(err)
  	err = zkBridge.RegisterMember(members[index], "info")
  	utility.CheckError(err)

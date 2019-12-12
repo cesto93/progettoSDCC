@@ -7,7 +7,6 @@ sudo apt-get -q -y upgrade 1> /dev/null
 
 echo "installing git..."
 sudo apt-get install git -y -q 1> /dev/null
-#sudo chmod 400 ./.ssh/sdcc_git
 
 echo "installing go..."
 sudo apt-get install golang -y -q 1> /dev/null

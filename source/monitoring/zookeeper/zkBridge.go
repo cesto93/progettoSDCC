@@ -10,7 +10,6 @@ type ZookeeperBridge struct {
 	zkConn *zk.Conn
 	sessionTimeout time.Duration
 	aliveNodePath string
-	Members []string
 	IsDead bool
 }
 
@@ -43,8 +42,7 @@ func checkAndDeleteNode(path string, conn *zk.Conn) error {
 	return nil
 }
 
-func New(zkServerAddresses []string, sessionTimeout time.Duration, 
-			aliveNodePath string, members []string) (*ZookeeperBridge, error) {
+func New(zkServerAddresses []string, sessionTimeout time.Duration, aliveNodePath string) (*ZookeeperBridge, error) {
 	//Connect to servers	
 	var bridge ZookeeperBridge 
 	var err error
@@ -53,7 +51,7 @@ func New(zkServerAddresses []string, sessionTimeout time.Duration,
 	if err != nil {
 		return &bridge, fmt.Errorf("Error in zkBridge Conn: %v", err)
 	}
-	bridge = ZookeeperBridge{conn, sessionTimeout, aliveNodePath, members, false}
+	bridge = ZookeeperBridge{conn, sessionTimeout, aliveNodePath, false}
 
 	//Create root for membership if not exist
 	if checkAndCreateNode(aliveNodePath, bridge.zkConn) != nil {
@@ -72,17 +70,6 @@ func (bridge *ZookeeperBridge) RegisterMember(memberId string, memberInfo string
 	return nil
 }
 
-/*func (bridge *ZookeeperBridge) MemberIsStarting(memberId string, memberInfo string) error {
-	//Save memberinfo in /membershipNodepath/memberId
-	path := fmt.Sprintf("%s/%s", bridge.startingNodePath, memberId)
-	_, err := bridge.zkConn.Create(path, []byte(memberInfo), 0, zk.WorldACL(zk.PermAll))
-	if err != nil {
-		return fmt.Errorf("Error in zkBridge RegisterMember Create: %v", err)
-	}
-	return nil
-}*/
-
-
 func (bridge *ZookeeperBridge) CheckMemberDead(memberId string)  error {
 	var alive bool
 	path := fmt.Sprintf("%s/%s", bridge.aliveNodePath, memberId)
@@ -100,20 +87,3 @@ func (bridge *ZookeeperBridge) CheckMemberDead(memberId string)  error {
 	bridge.IsDead = !alive
 	return nil
 }
-
-/*func getMembersDead(nodesAlive []string, nodesStarting []string, nodes []string) []string {
-	var dead []string 
-	var i,j int
-	nodesAlive = append(nodesAlive, nodesStarting...)
-	for i, _ = range  nodes {
-		for j = 0; j < len(nodesAlive); j++ { //DON'T SUBSTITUTE WITH RANGE OR IT WILL NOT WORK
-			if nodes[i] == nodesAlive[j] {
-				break
-			}
-		}
-		if j == len(nodesAlive) {
-			dead = append(dead, nodes[i])
-		}
-	}
-	return dead
-}*/
