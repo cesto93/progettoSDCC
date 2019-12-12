@@ -6,8 +6,6 @@ import (
         "net/http"
         "time"
         "strings"
-        //"os"
-        //"log"
         "encoding/json"
         "progettoSDCC/source/utility"
 )

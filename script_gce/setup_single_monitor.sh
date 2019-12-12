@@ -14,6 +14,7 @@ gcloud compute scp --zone=$ZONE initialize_instance.sh $1:~ -q
 gcloud compute scp --zone=$ZONE $LOCAL_DIR/$GIT_KEY_FILE $USER@$1:$GC_DIR -q
 gcloud compute scp --zone=$ZONE $LOCAL_DIR/config  $USER@$1:$GC_DIR -q
 gcloud compute scp --zone=$ZONE ../configuration/generated/prometheus.yml  $USER@$1:$HOME_DIR -q
+gcloud compute scp --zone=$ZONE ../configuration/generated/gce_project_id.json  $USER@$1:$HOME_DIR/go/src/progettoSDCC/configuration/generated -q
 #gcloud compute ssh --zone=$ZONE $1 --command "sudo mv prometheus.yml /etc/prometheus"
 
 echo "Initializing $1..."

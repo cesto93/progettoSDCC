@@ -16,6 +16,8 @@ import (
  	monitorIntervalSeconds = 300
  	restartIntervalSecond = 5
 
+ 	GCEprojectIDPath = "../configuration/generated/gce_project_id.json"
+
  	dbAddrPath = "../configuration/generated/db_addr.json"
  	dbName = "mydb"
 
@@ -104,7 +106,10 @@ func main() {
  		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, "Average", monitorIntervalSeconds)
  		myRestarter = restarter.NewAws()
  	} else {
- 		monitorBridge = monitor.NewGce(GcloudMetricsJsonPath, InstancesJsonPath)
+ 		var GCEprojectID string
+ 		err = utility.ImportJson(GCEprojectIDPath, &GCEprojectID)
+ 		utility.CheckError(err)
+ 		monitorBridge = monitor.NewGce(GCEprojectID, GcloudMetricsJsonPath, InstancesJsonPath)
  		myRestarter = restarter.NewGce()
  	}
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)

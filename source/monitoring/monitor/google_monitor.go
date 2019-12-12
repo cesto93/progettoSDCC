@@ -1,14 +1,9 @@
 package monitor
 
 import (
-		//"io/ioutil"
         "context"
         "fmt"
-        //"io"
         "time"
-        //"os"
-        //"log"
-        //"encoding/json"
         "progettoSDCC/source/utility"
 
 
@@ -16,12 +11,6 @@ import (
         "github.com/golang/protobuf/ptypes/timestamp"
         "google.golang.org/api/iterator"
         monitoringpb "google.golang.org/genproto/googleapis/monitoring/v3"
-)
-
-const (
-    ProjectID = "concise-faculty-246814"
-    //GcloudMetricsJsonPath = "../../../configuration/metrics_gce.json"
-    //InstancesJsonPath = "../../../configuration/instances_ids.json"
 )
 
 type Metric_Label struct {
@@ -36,6 +25,7 @@ type Metric struct {
 }
 
 type gceMonitor struct{
+    projectID string
     client *monitoring.MetricClient
     ctx context.Context
     metrics []Metric
@@ -53,7 +43,7 @@ func (monitor *gceMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
             fmt.Println("Metric: ", monitor.metrics[i].Name, ", Labels: ", monitor.metrics[i].Labels)
 
             req = &monitoringpb.ListTimeSeriesRequest{
-                Name:   "projects/" + ProjectID,
+                Name:   "projects/" + monitor.projectID,
                 Filter: metricType,
                 Interval: &monitoringpb.TimeInterval{
                         StartTime: &timestamp.Timestamp{Seconds: startTime.Unix()},
@@ -142,7 +132,7 @@ func printInstancesIdsAndMetrics(instances []string, metric []Metric){
     }
 }
 
-func NewGce(GcloudMetricsJsonPath string, InstancesJsonPath string) *gceMonitor{
+func NewGce(GcloudMetricsJsonPath string, InstancesJsonPath string, projectID string) *gceMonitor{
     var metrics []Metric
     var instances []string
 
@@ -154,7 +144,7 @@ func NewGce(GcloudMetricsJsonPath string, InstancesJsonPath string) *gceMonitor{
     ctx := context.Background()
     c, err := monitoring.NewMetricClient(ctx)
     utility.CheckError(err)
-    return &gceMonitor{c, ctx, metrics, instances}
+    return &gceMonitor{projectID, c, ctx, metrics, instances}
 }
 
 func (gcemonitor *gceMonitor) Test() {
