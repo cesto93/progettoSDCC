@@ -87,6 +87,8 @@ server.2=${ZK_SRV_IP[1]}$ZK_SERVER_PORTS
 server.3=${ZK_SRV_IP[2]}$ZK_SERVER_PORTS' | tee ./zookeeper/conf/zoo.cfg
 sudo sh -c 'echo '$MYID' > /var/lib/zookeeper/myid'
 echo -e 'finished zookeper server configuration $MYID\n' 
-"
+" &
 
 done
+
+wait
