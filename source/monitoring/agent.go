@@ -51,57 +51,10 @@ import (
  }
 
  func saveAppMetrics(path string, dbBridge *db.DbBridge) {
- 	var metrics []monitor.MetricData
- 	var wordElaboratedApplication, elaborationTime, throughPutApplication, workers []interface{}
-	var timestamp []time.Time
- 	raws, err := appMetrics.ReadApplicationMetrics(path)
+ 	metrics, err := appMetrics.ReadApplicationMetrics(path)
  	utility.CheckError(err)
- 	if (raws != nil) {
- 		for _, raw := range raws {
- 			wordElaboratedApplication = append(wordElaboratedApplication, raw.Metrics.WordElaboratedApplication)
- 			elaborationTime = append(elaborationTime, raw.Metrics.ElaborationTime)
- 			throughPutApplication = append(throughPutApplication, raw.Metrics.ThroughPutApplication)
- 			workers = append(workers, raw.Metrics.Workers)
- 			timestamp = append(timestamp, raw.Timestamp)
- 		}
-
- 		metrics = append(metrics, 
- 		monitor.MetricData  {
-			Label : "WordElaboratedApplication",
-			TagName : "App",
-			TagValue : "Word_Count",
-			Timestamps: timestamp,
-			Values : wordElaboratedApplication,
-		} )
-
-		metrics = append(metrics, 
- 		monitor.MetricData  {
-			Label : "ElaborationTime",
-			TagName : "App",
-			TagValue : "Word_Count",
-			Timestamps: timestamp,
-			Values : elaborationTime,
-		} )
-
-		metrics = append(metrics, 
- 		monitor.MetricData  {
-			Label : "ThroughPutApplication",
-			TagName : "App",
-			TagValue : "Word_Count",
-			Timestamps: timestamp,
-			Values : throughPutApplication,
-		} )
-
-		metrics = append(metrics, 
- 		monitor.MetricData  {
-			Label : "Workers",
-			TagName : "App",
-			TagValue : "Word_Count",
-			Timestamps: timestamp,
-			Values : workers,
-		} )
-
- 		printMetrics(metrics, timestamp[0], timestamp[len(timestamp)-1])
+ 	if (metrics != nil) {
+ 		printMetrics(metrics, metrics[0].Timestamps[0], metrics[0].Timestamps[0])
  		err = dbBridge.SaveMetrics(metrics)
  		for err != nil {
  			err = dbBridge.SaveMetrics(metrics)
@@ -205,7 +158,7 @@ func main() {
 		}
 		if (now.After(nextMeasure)) {
 			saveMetrics(monitorBridge, dbBridge, start.UTC(), end.UTC())
-			saveMetrics(monitorPrometheus, dbBridge, start.UTC(), end.UTC())
+			saveMetrics(monitorPrometheus, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
 			saveAppMetrics(AppmetricsJsonPath, dbBridge)
 			lastMeasure = lastMeasure.Add(monitorInterval)
 			nextMeasure = nextMeasure.Add(monitorInterval)

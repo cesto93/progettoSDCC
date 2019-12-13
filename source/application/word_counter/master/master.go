@@ -11,6 +11,7 @@ import (
 	"progettoSDCC/source/application/word_counter/wordCountUtils"
 	"progettoSDCC/source/utility"
 	"progettoSDCC/source/appMetrics"
+	"progettoSDCC/source/monitoring/monitor"
 )
 
 type Master int
@@ -188,10 +189,14 @@ func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 }
 
 func logData(words []wordCountUtils.WordCount, latency time.Duration, workers int) {
+	var myMetrics []monitor.MetricData
 	nWords := wordCountUtils.CountTotalWords(words)
 	sec := latency.Seconds()
 	throughput := float64(nWords) / sec
-	myMetrics := appMetrics.WordCountMetrics{nWords, sec, throughput, workers}
+	myMetrics = append(myMetrics, appMetrics.NewAppMetric("WordCount", "WordElaboratedApplication", nWords))
+	myMetrics = append(myMetrics, appMetrics.NewAppMetric("WordCount", "ElaborationTime", sec))
+	myMetrics = append(myMetrics, appMetrics.NewAppMetric("WordCount", "ThroughPutApplication", throughput))
+	myMetrics = append(myMetrics, appMetrics.NewAppMetric("WordCount", "Workers", workers))
 	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
 	utility.CheckErrorNonFatal(err)
 }

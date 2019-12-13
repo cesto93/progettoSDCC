@@ -1,4 +1,7 @@
 # ProgettoSDCC
+This project consist on a monitoring system that observe AWS EC2 instances and GCE compute engine instances using cloudwatch, stackdriver and prometheus, as well as application exposed metrics. The metrics measured can be changed in the specific configuration files and others application metrics can be exported as long as the are saved as a specific json file.  
+The system notice monitor agent fault (using zookeeper) and restart the faulty intances. Finally metrics are aggregated on a master instances that use influxdb, connect to that to gather all metrics.  
+We provide a test app that do the word count using aws EC2, S3 and GCE compute engine services.
 
 ## Local Dependency
 In order to launch the script you need to install
@@ -41,7 +44,28 @@ N.B.:
 -	by default only a subset of metrics are scraped by prometheus, gce and stackdriver; those metrics are specified in metrics_prometheus.json and metrics_gce.json, and can be expanded at will
 -	only way for prometheus to connect to the monitored instances is via IP address, connecting through node exporter at port 9100, so ensure to start all instances you want to monitor and to allow both inbound and outbound traffic on the aforementioned port before running the script set_instances_to_monitor.sh (gce IPs are dynamically changed at each restart)
 
+##Monitoring
+
+###Configuration
+* The monitoring agent configuration is saved in the file /configuration/monitor.json
+* The metrics monitored are taken from:
+    * /configuration/metrics_ec2.json
+    * /configuration/metrics_s3.json
+    * /configuration/metrics_gce.json
+    * /configuration/metrics_prometheus.json 
+* The application metrics are taken from /log/app_metrics.json
+
+* To configure aws monitoring run script ./script_aws/configure_monitoring.sh
+* To configure gce monitoring run script ./script_gce/configure_monitoring.sh
+* To add monitoring at startup on aws run add add_statup.sh
+* Set the grafana datasource on influxdb on http://ADDR:8086
+
 ## Application
+
+###Configuration
+The node configuration is done via a json file located at /configuration/word_count.json  
+The ip of the nodes are gathered by the script files and parse in a json file at /configuration/generated/app_node.json.  
+To test the app in local or if you want to manually set the ip use this file directly.  
 
 ###Commands
 
@@ -58,11 +82,3 @@ The client of the application use different flags for specifing different operat
     * -names (USED with load/delete/count)specifies the names for the S3 file in the bucket to use/load/delete
     * -paths (USED with load) specifies the paths for the local file to upload
     * -serverAddr (USED with count) specifie the address of the server for the rpc requiest to wordcount operation
-
-###Configuration
-The node configuration is done via a json file located at /configuration/word_count.json  
-The ip of the nodes are gathered by the script files and parse in a json file at /configuration/generated/app_node.json.  
-To test the app in local or if you want to manually set the ip use this file directly.  
-
-##Monitoring
-*To configure aws monitoring run script ./script_aws/configure_monitoring.sh

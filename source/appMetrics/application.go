@@ -1,42 +1,39 @@
 package appMetrics
 
 import (
-	"time"
 	"os"
 	"fmt"
+	"time"
 	"progettoSDCC/source/utility"
+	"progettoSDCC/source/monitoring/monitor"
 )
 
-
-type WordCountMetrics struct {
-	WordElaboratedApplication int
-	ElaborationTime float64 	//sec
-	ThroughPutApplication float64 //(words/sec)
-	Workers int
+func NewAppMetric(appName string, label string, value interface{}) monitor.MetricData {
+	return monitor.MetricData  {
+			Label : label,
+			TagName : "App",
+			TagValue : appName,
+			Timestamps: []time.Time{time.Now()},
+			Values : []interface{}{value},
+		}
 }
 
-type WordCountMetricsData struct {
-	Metrics WordCountMetrics
-	Timestamp time.Time
-}
-
-func AppendApplicationMetrics(path string, metrics WordCountMetrics) error {
+func AppendApplicationMetrics(path string, metrics []monitor.MetricData) error {
 	data, err := ReadApplicationMetrics(path)
-	last := WordCountMetricsData{metrics, time.Now()}
+	last := metrics
 	if err != nil {
-
 		return fmt.Errorf("failed to append application metrics : %v\n", err)
 	} 
 	if data == nil {
-		data = []WordCountMetricsData{last}	
+		data = last
 	} else {
-		data = append(data, last)
+		data = append(data, last...)
 	}
 	return utility.ExportJson(path, data)
 }
 
-func ReadApplicationMetrics(path string) ([]WordCountMetricsData, error) {
-	var res []WordCountMetricsData
+func ReadApplicationMetrics(path string) ([]monitor.MetricData, error) {
+	var res []monitor.MetricData
 	err := utility.ImportJson(path, &res)
 	if os.IsNotExist(err) {
 		return nil, nil
