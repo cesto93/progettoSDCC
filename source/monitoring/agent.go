@@ -84,7 +84,7 @@ func main() {
 	var dbAddr string
 	var monitorBridge, monitorPrometheus monitor.MonitorBridge
 	var myRestarter restarter.Restarter
-	var aws,tryed bool
+	var aws bool
 	var index, next int
 	var start, end time.Time
 
@@ -142,7 +142,8 @@ func main() {
  		end = nextMeasure
  	}
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
- 	fmt.Printf("Starting agent %d\n that observ %d\n", members[index], members[next])
+ 	tryed := false
+ 	fmt.Printf("Starting agent %s\n that observ %s\n", members[index], members[next])
 
 	for {
 		time.Sleep(time.Second * restartIntervalSecond)
