@@ -15,7 +15,7 @@ import (
  const (
  	sessionTimeout = 10
  	monitorIntervalSeconds = 300
- 	restartIntervalSecond = 10
+ 	restartIntervalSecond = 5
 
  	GCEprojectIDPath = "../configuration/generated/gce_project_id.json"
 
