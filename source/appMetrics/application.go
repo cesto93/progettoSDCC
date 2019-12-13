@@ -43,6 +43,9 @@ func ReadApplicationMetrics(path string) ([]monitor.MetricData, error) {
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
-	os.Remove(path)
+	if err != nil {
+		return nil, err
+	}
+	err = os.Remove(path)
 	return res, err
 }
