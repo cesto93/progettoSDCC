@@ -19,7 +19,7 @@ do
 	INST_DNS[$i]=$(echo $INST | jq -r '.[].PublicDnsName')
 	ID_MONITOR_J[$i]=$(echo $INST | jq '[.[].InstanceId]')
 	ID_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].InstanceId]')
-	IP_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].NetworkInterfaces[].Association.PublicIp]')
+	IP_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].NetworkInterfaces[].PrivateIpAddress]')
 done
 IDS_MONITOR_J=$(echo ${ID_MONITOR_J[@]} | jq -s 'add | flatten')
 
@@ -44,6 +44,10 @@ echo $ADDR_DB_J > ../configuration/generated/db_addr.json
 #configuration of json parameters and project pull and compile
 for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
 do
+	unset TARGS
+	unset BASH_TARGS
+	unset IP_MONITORED_J
+	unset ID_MONITORED_J
 	MONITORED_NAMES=( $(echo $CONF_MONITOR | jq -r --argjson index "$i" '.aws[$index].monitored[]') )
 	for (( j=0; j<${#MONITORED_NAMES[@]}; j++ ));
 	do
@@ -52,13 +56,14 @@ do
 	done
 	ID_MONITORED_M_J=$(echo ${ID_MONITORED_J[@]} | jq -s 'add')
 	#IP_MONITORED_M_J=$(echo ${IP_MONITORED_J[@]} | jq -s 'add')
-	PROVA=$(echo ${IP_MONITORED_J[@]} | jq -r '.[]' )
-
-	#echo ${PROVA[@]} | jq -s '[{targets:[(.[] + ":9100")],labels:{job:"prometheus"}}]'
-	IP_MONITORED_M_J=$(echo $(for i in "${PROVA[@]}"
-								do
-									echo $i | jq -R '.'
-								done) | jq -s '[{targets:[(.[] + ":9100")],labels:{job:"prometheus"}}]')
+	BASH_TARGS=( $(echo ${IP_MONITORED_J[@]} | jq -r '.[]' ) )
+	
+	TARGS="'${BASH_TARGS[0]}:9100'"
+	#for j in ${PROVA[@]};
+	for ((j=1; j<${#BASH_TARGS[@]}; j++));
+	do
+		TARGS="$TARGS, '${BASH_TARGS[j]}:9100'"
+	done
 
 	ssh  -q -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INST_DNS[$i]} \
 "
@@ -73,7 +78,21 @@ echo '$i' | tee ./configuration/generated/id_monitor.json
 echo '$ID_MONITORED_M_J' | tee ./configuration/generated/ec2_inst.json
 echo '$ADDR_DB_J' | tee ./configuration/generated/db_addr.json
 #prometheus
-echo '$IP_MONITORED_M_J' | tee ./configuration/generated/instances.json
+sudo tee /etc/prometheus/prometheus.yml<<EOF
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first.rules"
+  # - "second.rules"
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: [$TARGS]
+EOF
+sudo systemctl restart prometheus
 echo 'finished' 
 " &
 done 

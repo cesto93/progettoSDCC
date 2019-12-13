@@ -23,7 +23,7 @@
   "aws": [
     {
       "name": "master",
-      "monitored": ["master"]
+      "monitored": ["master", "worker-2", "worker-3"]
     },
     {
       "name": "worker-1",
