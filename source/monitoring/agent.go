@@ -137,7 +137,7 @@ func main() {
  		err = utility.ImportJson(GCEprojectIDPath, &GCEprojectID)
  		utility.CheckError(err)
  		monitorBridge = monitor.NewGce(GCEprojectID, GcloudMetricsJsonPath, InstancesJsonPath)
- 		myRestarter = restarter.NewGce()
+ 		myRestarter = restarter.NewGce(GCEprojectID)
  		start = lastMeasure
  		end = nextMeasure
  	}

@@ -10,16 +10,16 @@ import (
 )
 
 const (
-	projectID = "concise-faculty-246814"
 	gceRegion = "us-central1-a"
 )
 
 type GceRestarter struct {
+	projectID string
 	client *compute.Service
 	ctx context.Context
 }
 
-func NewGce() *GceRestarter {
+func NewGce(projectID string) *GceRestarter {
 	ctx := context.Background()
 
 	c, err := google.DefaultClient(ctx, compute.CloudPlatformScope)
@@ -30,11 +30,11 @@ func NewGce() *GceRestarter {
     if err != nil {
             log.Fatal(err)
     }
-    return &GceRestarter{computeService, ctx}
+    return &GceRestarter{projectID, computeService, ctx}
 }
 
 func (Restarter *GceRestarter) start(instanceID string) error {
-	_, err := Restarter.client.Instances.Start(projectID, gceRegion, instanceID).Context(Restarter.ctx).Do()
+	_, err := Restarter.client.Instances.Start(Restarter.projectID, gceRegion, instanceID).Context(Restarter.ctx).Do()
 	if err != nil {
 		return fmt.Errorf("failed to start instance: %v", err)
 	}
@@ -42,7 +42,7 @@ func (Restarter *GceRestarter) start(instanceID string) error {
 }
 
 func (Restarter *GceRestarter) reset(instanceID string) error {
-	_, err := Restarter.client.Instances.Reset(projectID, gceRegion, instanceID).Context(Restarter.ctx).Do()
+	_, err := Restarter.client.Instances.Reset(Restarter.projectID, gceRegion, instanceID).Context(Restarter.ctx).Do()
 	if err != nil {
 		return fmt.Errorf("failed to reset instance: %v", err)
 	}
@@ -50,7 +50,7 @@ func (Restarter *GceRestarter) reset(instanceID string) error {
 }
 
 func (Restarter *GceRestarter) getState(instanceID string) (string, error) {
-	resp, err := Restarter.client.Instances.Get(projectID, gceRegion, instanceID).Context(Restarter.ctx).Do()
+	resp, err := Restarter.client.Instances.Get(Restarter.projectID, gceRegion, instanceID).Context(Restarter.ctx).Do()
 	if err != nil {
 		return "", fmt.Errorf("failed to get instance state: %v", err)
 	}
@@ -72,9 +72,4 @@ func (Restarter *GceRestarter) Restart(instanceID string) (bool, error) {
 		return true, err
 	}
 	return false, err
-}
-
-func Test(){
-	r:=NewGce()
-	r.Restart("9075855297015341508")
 }
