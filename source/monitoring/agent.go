@@ -155,6 +155,8 @@ func main() {
 			if tryed {
 				fmt.Println("Tried to restart")
 				time.Sleep(time.Second * restartIntervalSecond)
+				zkBridge.IsDead = false
+				tryed = false
 			}
 		}
 		if (now.After(nextMeasure)) {
