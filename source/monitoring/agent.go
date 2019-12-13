@@ -64,7 +64,8 @@ import (
 
  func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge, id string) {
  	for {
- 		zkBridge.CheckMemberDead(id)
+ 		err := zkBridge.CheckMemberDead(id)
+ 		utility.CheckError(err)
  	}
  }
 
@@ -120,7 +121,6 @@ func main() {
  	}
  	go checkMembersDead(zkBridge, members[next])
 
-
  	monitorInterval := monitorIntervalSeconds * time.Second
  	now := time.Now().Truncate(monitorInterval)
 	lastMeasure := now.Add(-monitorInterval)
@@ -142,7 +142,6 @@ func main() {
  		end = nextMeasure
  	}
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
-
 
 	for {
 		time.Sleep(time.Second * restartIntervalSecond)
