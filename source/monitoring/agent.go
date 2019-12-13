@@ -142,6 +142,7 @@ func main() {
  		end = nextMeasure
  	}
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
+ 	fmt.Printf("Starting agent %d\n that observ %d\n", members[index], members[next])
 
 	for {
 		time.Sleep(time.Second * restartIntervalSecond)
