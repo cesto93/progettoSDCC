@@ -132,6 +132,7 @@ func main() {
 	var myRestarter restarter.Restarter
 	var aws,tryed bool
 	var index, next int
+	var start, end time.Time
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
 	flag.Parse()
@@ -166,22 +167,29 @@ func main() {
  	}
  	go checkMembersDead(zkBridge, members[next])
 
+
+ 	monitorInterval := monitorIntervalSeconds * time.Second
+ 	now := time.Now().Truncate(monitorInterval)
+	lastMeasure := now.Add(-monitorInterval)
+	nextMeasure := now
+
  	if (aws) {
  		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, "Average", monitorIntervalSeconds)
  		myRestarter = restarter.NewAws()
+ 		awsDelay := 5 * time.Minute
+ 		start = lastMeasure.Add(-awsDelay)
+ 		end = nextMeasure.Add(-awsDelay)
  	} else {
  		var GCEprojectID string
  		err = utility.ImportJson(GCEprojectIDPath, &GCEprojectID)
  		utility.CheckError(err)
  		monitorBridge = monitor.NewGce(GCEprojectID, GcloudMetricsJsonPath, InstancesJsonPath)
  		myRestarter = restarter.NewGce()
+ 		start = lastMeasure
+ 		end = nextMeasure
  	}
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
 
-	monitorInterval := monitorIntervalSeconds * time.Second
-	now := time.Now().Truncate(monitorInterval)
-	lastMeasure := now.Add(-monitorInterval)
-	nextMeasure := now
 
 	for {
 		time.Sleep(time.Second * restartIntervalSecond)
@@ -196,11 +204,13 @@ func main() {
 			}
 		}
 		if (now.After(nextMeasure)) {
-			saveMetrics(monitorBridge, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
-			saveMetrics(monitorPrometheus, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
+			saveMetrics(monitorBridge, dbBridge, start.UTC(), end.UTC())
+			saveMetrics(monitorPrometheus, dbBridge, start.UTC(), end.UTC())
 			saveAppMetrics(AppmetricsJsonPath, dbBridge)
 			lastMeasure = lastMeasure.Add(monitorInterval)
 			nextMeasure = nextMeasure.Add(monitorInterval)
+			start = start.Add(monitorInterval)
+			end = end.Add(monitorInterval)
 		}
 	}
  }
