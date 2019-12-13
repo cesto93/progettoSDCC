@@ -15,7 +15,7 @@ import (
  const (
  	sessionTimeout = 10
  	monitorIntervalSeconds = 300
- 	restartIntervalSecond = 5
+ 	restartIntervalSecond = 10
 
  	GCEprojectIDPath = "../configuration/generated/gce_project_id.json"
 
@@ -154,6 +154,7 @@ func main() {
 
 			if tryed {
 				fmt.Println("Tried to restart")
+				time.Sleep(time.Second * restartIntervalSecond)
 			}
 		}
 		if (now.After(nextMeasure)) {
