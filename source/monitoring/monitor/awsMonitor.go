@@ -100,7 +100,7 @@ func printAwsMetrics(results []*cloudwatch.MetricDataResult) {
 func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([]*cloudwatch.MetricDataResult, error) {
 	query := make([]*cloudwatch.MetricDataQuery, len(monitor.metrics))
 	for i,_ := range monitor.metrics {
-		id := monitor.metrics[i].Namespace + "_" + *monitor.metrics[i].Dimensions[0].Value + "_" + monitor.metrics[i].Name
+		id := *monitor.metrics[i].Dimensions[0].Value
 		query[i] = &cloudwatch.MetricDataQuery{
 			Id: aws.String(strings.ToLower(id)),
 			MetricStat: &cloudwatch.MetricStat{
@@ -141,9 +141,8 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	for _, metricdata := range awsRes {
 		if len(metricdata.Values) != 0 { 
 			var data MetricData 
-			s := strings.Split(*metricdata.Id, "_")
-			data.TagName = s[0]
-			data.TagValue = s[1]
+			data.TagName = "AWS/EC2"
+			data.TagValue = *metricdata.Id
 			data.Label = *metricdata.Label
 			data.Values = make([]interface{}, len(metricdata.Timestamps))
 			data.Timestamps = make([]time.Time, len(metricdata.Timestamps))
