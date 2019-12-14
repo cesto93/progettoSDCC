@@ -5,7 +5,7 @@
     "namespace" : "AWS/S3",
     "unit" : "Bytes"
     },
-     "monitoring": true,
+     "monitoring": false,
      "dimensionnames" : ["StorageType", "BucketName"],
      "dimensionvalues" : ["StandardStorage", "cesto93"]
   },
@@ -15,7 +15,7 @@
     "namespace" : "AWS/S3",
     "unit" : "Count"
     },
-     "monitoring": true,
+     "monitoring": false,
      "dimensionnames" : ["StorageType", "BucketName"],
      "dimensionvalues" : ["AllStorageTypes", "cesto93"]
   }

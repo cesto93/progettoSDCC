@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/rpc"
-	"flag"
 	"time"
 	"progettoSDCC/source/application/word_counter/storage"
 	"progettoSDCC/source/application/word_counter/rpcUtils"
@@ -20,6 +19,7 @@ var bucketName string
 
 const (
 	nodesJsonPath = "../configuration/generated/app_node.json"
+	bucketNamePath = "../configuration/generated/bucket.json"
 	metricsJsonPath = "../log/app_metrics.json"
 )
 
@@ -200,9 +200,8 @@ func logData(words []wordCountUtils.WordCount, latency time.Duration, workers in
 
 func main() {
 	utility.ImportJson(nodesJsonPath, &nodeConf)
+	utility.ImportJson(bucketNamePath, &bucketName)
 
-	flag.StringVar(&bucketName, "bucketName", "cesto93", "The rpc port of the master for the client")
-	flag.Parse()
 	fmt.Println("Starting rpc service on Master node on port " + nodeConf.MasterPort)
 	master := new(Master)
 	rpcUtils.ServRpc(nodeConf.MasterPort, "Master", master)
