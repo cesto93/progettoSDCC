@@ -2,6 +2,7 @@
 source ./conf/key.sh
 CONF=$(<../configuration/word_count.json)
 GC_ADDR_J=$(<../configuration/generated/gc_workers.json)
+BUCKET=$(<../configuration/generated/bucket.json)
 
 #importing configuration
 NAMES=( $(echo $CONF | jq -r '.aws[].name') )
@@ -43,6 +44,7 @@ cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/master ./source/application/word_counter/master/master.go
 echo '$APP_NODE' | tee ./configuration/generated/app_node.json
+echo '$BUCKET' | tee ./configuration/generated/bucket.json
 "
 
 echo "Connect client to ${IP[0]}:${PORTS[0]}"

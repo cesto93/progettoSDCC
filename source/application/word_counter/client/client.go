@@ -11,6 +11,8 @@ import (
 	"progettoSDCC/source/application/word_counter/rpcUtils"
 )
 
+const bucketNamePath = "../configuration/generated/bucket.json"
+
 func readWordfileFromS3(key string, bucketName string) *string {
 	s := storage.New(bucketName)
 	data,err := s.Read(key)
@@ -78,11 +80,12 @@ func main(){
 	flag.BoolVar(&list, "list", false, "Specify the list file operation")
 	flag.BoolVar(&count, "count", false, "Specify the count word operation")
 
-	flag.StringVar(&bucketName, "bucket", "cesto93", "The name of the bucket on aws")
 	flag.Var(&names, "names", "Name of file to upload.")
 	flag.Var(&paths, "paths", "Path of file to upload.")
 	flag.Var(&serverAddr, "serverAddr", "The server port for the rpc")
 	flag.Parse()
+	utility.ImportJson(bucketNamePath, &bucketName)
+	
 	if (load) {
 		if( len(names) != len(paths)){
 			log.Fatal("Error, paths and names must have same dimension")

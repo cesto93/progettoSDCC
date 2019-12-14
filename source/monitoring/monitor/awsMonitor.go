@@ -4,6 +4,7 @@ import (
  	"fmt"
  	"time"
  	"strconv"
+ 	"strings"
  	"github.com/aws/aws-sdk-go/aws"
  	"github.com/aws/aws-sdk-go/aws/session"
  	"github.com/aws/aws-sdk-go/service/cloudwatch"
@@ -116,7 +117,7 @@ func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([
 		}
 	}
 
-	fmt.Printf("query: %v\n", query)
+	//fmt.Printf("query: %v\n", query)
 
 	resp, err := monitor.client.GetMetricData(&cloudwatch.GetMetricDataInput{
 		EndTime:           &endTime,
@@ -142,9 +143,10 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 		if len(metricdata.Values) != 0 { 
 			var data MetricData 
 			id,_ := strconv.Atoi((*metricdata.Id)[2:])
+			label := strings.Split(*metricdata.Label, " ")
 			data.TagName = "AWS/EC2"
 			data.TagValue = *monitor.metrics[id].Dimensions[0].Value
-			data.Label = *metricdata.Label
+			data.Label = label[len(label)]
 			data.Values = make([]interface{}, len(metricdata.Timestamps))
 			data.Timestamps = make([]time.Time, len(metricdata.Timestamps))
 			for j, _ := range metricdata.Values {
