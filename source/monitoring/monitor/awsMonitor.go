@@ -74,7 +74,7 @@ func loadDimensionSameName(metrics []AwsMetric, dimensionName string, dimensionV
 			Name : &dimensionName,
 			Value : &dimensionValues,
 		}
-		metrics[i].Dimensions = append(metrics[i].Dimensions, dimension)
+		metrics[i].Dimensions = []*cloudwatch.Dimension{dimension}
 	}
 	return metrics
 }
