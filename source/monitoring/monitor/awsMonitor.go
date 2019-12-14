@@ -68,32 +68,24 @@ func appendDimensions(metrics []AwsMetric, dimensions [][] *cloudwatch.Dimension
 	return metrics
 }
 
-func loadDimensionsSameName(metrics []AwsMetric, dimensionName string, dimensionValues []string) []AwsMetric{
+func loadDimensionSameName(metrics []AwsMetric, dimensionName string, dimensionValues string) []AwsMetric{
 	for i, _ := range metrics {
-		for j,_ := range dimensionValues {
-			dimension := &cloudwatch.Dimension{
-				Name : &dimensionName,
-				Value : &dimensionValues[j],
-			}
-			metrics[i].Dimensions = append(metrics[i].Dimensions, dimension)
+		dimension := &cloudwatch.Dimension{
+			Name : &dimensionName,
+			Value : &dimensionValues,
 		}
+		metrics[i].Dimensions = append(metrics[i].Dimensions, dimension)
 	}
 	return metrics
 }
 
-/*//UNUSED
-func loadDimensions(metrics []AwsMetric, dimensionNames []string, dimensionValues []string) []AwsMetric{
-	for i, _ := range metrics {
-		for j,_ := range dimensionNames {
-			dimension := &cloudwatch.Dimension{
-				Name : &dimensionNames[j],
-				Value : &dimensionValues[j],
-			}
-			metrics[i].Dimensions = append(metrics[i].Dimensions, dimension)
-		}
+func metricsSetInstance(metrics []AwsMetric, dimensionName string, instanceIds []string) []AwsMetric{
+	var allmetrics []AwsMetric
+	for i := range instanceIds {
+		allmetrics = append(allmetrics, loadDimensionSameName(metrics, dimensionName, instanceIds[i])...)
 	}
-	return metrics
-}*/
+	return allmetrics
+}
 
 //DEBUG
 func printAwsMetrics(results []*cloudwatch.MetricDataResult) {
@@ -108,8 +100,9 @@ func printAwsMetrics(results []*cloudwatch.MetricDataResult) {
 func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([]*cloudwatch.MetricDataResult, error) {
 	query := make([]*cloudwatch.MetricDataQuery, len(monitor.metrics))
 	for i,_ := range monitor.metrics {
+		id := monitor.metrics[i].Namespace + " " + *monitor.metrics[i].Dimensions[0].Value + " " + monitor.metrics[i].Name
 		query[i] = &cloudwatch.MetricDataQuery{
-			Id: aws.String(strings.ToLower(monitor.metrics[i].Name)),
+			Id: aws.String(strings.ToLower(id)),
 			MetricStat: &cloudwatch.MetricStat{
 				Metric: &cloudwatch.Metric{
 					Namespace:  &monitor.metrics[i].Namespace,
@@ -123,7 +116,7 @@ func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([
 		}
 	}
 
-	//fmt.Printf("query: %v\n", query)
+	fmt.Printf("query: %v\n", query)
 
 	resp, err := monitor.client.GetMetricData(&cloudwatch.GetMetricDataInput{
 		EndTime:           &endTime,
@@ -148,10 +141,10 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	for _, metricdata := range awsRes {
 		if len(metricdata.Values) != 0 { 
 			var data MetricData 
-			s := strings.Split(*metricdata.Label, " ")
+			s := strings.Split(*metricdata.Id, " ")
 			data.TagName = s[0]
 			data.TagValue = s[1]
-			data.Label = s[2]
+			data.Label = *metricdata.Label
 			data.Values = make([]interface{}, len(metricdata.Timestamps))
 			data.Timestamps = make([]time.Time, len(metricdata.Timestamps))
 			for j, _ := range metricdata.Values {
@@ -172,7 +165,7 @@ func NewAws(ec2MetricJsonPath string, ec2InstPath string,  stat string, period i
  	utility.CheckError(utility.ImportJson(ec2InstPath, &instanceIds))
 
  	ec2Metrics, _ := importMetrics(ec2MetricsJ)
- 	ec2Metrics = loadDimensionsSameName(ec2Metrics, "InstanceId", instanceIds)
+ 	ec2Metrics = metricsSetInstance(ec2Metrics, "InstanceId", instanceIds)
 	svc := cloudwatchClient(awsRegion)
 
 	return &AwsMonitor{svc, stat, period, ec2Metrics}

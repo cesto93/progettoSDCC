@@ -17,8 +17,6 @@ import (
  	monitorIntervalSeconds = 300
  	restartIntervalSecond = 5
 
- 	GCEprojectIDPath = "../configuration/generated/gce_project_id.json"
-
  	dbAddrPath = "../configuration/generated/db_addr.json"
  	dbName = "mydb"
 
@@ -29,9 +27,9 @@ import (
 
  	EC2MetricJsonPath = "../configuration/metrics_ec2.json"
  	EC2InstPath = "../configuration/generated/ec2_inst.json"
- 	S3MetricPath = "../configuration/metrics_s3.json"
  	StatPath = "../configuration/monitoring_stat.json"
 
+ 	GCEprojectIDPath = "../configuration/generated/gce_project_id.json"
  	GcloudMetricsJsonPath = "../configuration/metrics_gce.json"
     InstancesJsonPath = "../configuration/generated/instances_ids.json"
 
