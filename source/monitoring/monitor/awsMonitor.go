@@ -164,21 +164,16 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	return res, nil 
 }
 
-func NewAws(ec2MetricJsonPath string, ec2InstPath string, s3MetricPath string,  stat string, period int64) *AwsMonitor {
-	var ec2MetricsJ, s3MetricsJ []AwsMetricJson
+func NewAws(ec2MetricJsonPath string, ec2InstPath string,  stat string, period int64) *AwsMonitor {
+	var ec2MetricsJ []AwsMetricJson
 	var instanceIds []string
 
 	utility.CheckError(utility.ImportJson(ec2MetricJsonPath, &ec2MetricsJ))
  	utility.CheckError(utility.ImportJson(ec2InstPath, &instanceIds))
- 	utility.CheckError(utility.ImportJson(s3MetricPath, &s3MetricsJ))
 
  	ec2Metrics, _ := importMetrics(ec2MetricsJ)
- 	s3Metrics, s3Dim := importMetrics(s3MetricsJ)
  	ec2Metrics = loadDimensionsSameName(ec2Metrics, "InstanceId", instanceIds)
- 	s3Metrics = appendDimensions(s3Metrics, s3Dim)
- 	metrics := append(ec2Metrics, s3Metrics...)
-
 	svc := cloudwatchClient(awsRegion)
 
-	return &AwsMonitor{svc, stat, period, metrics}
+	return &AwsMonitor{svc, stat, period, ec2Metrics}
 }

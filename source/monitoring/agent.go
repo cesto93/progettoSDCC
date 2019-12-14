@@ -127,7 +127,7 @@ func main() {
 	nextMeasure := now
 
  	if (aws) {
- 		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, S3MetricPath, "Average", monitorIntervalSeconds)
+ 		monitorBridge = monitor.NewAws(EC2MetricJsonPath, EC2InstPath, "Average", monitorIntervalSeconds)
  		myRestarter = restarter.NewAws()
  		awsDelay := 5 * time.Minute
  		start = lastMeasure.Add(-awsDelay)
