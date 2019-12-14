@@ -3,7 +3,7 @@ package monitor
 import (
  	"fmt"
  	"time"
- 	"strings"
+ 	"strconv"
  	"github.com/aws/aws-sdk-go/aws"
  	"github.com/aws/aws-sdk-go/aws/session"
  	"github.com/aws/aws-sdk-go/service/cloudwatch"
@@ -100,9 +100,9 @@ func printAwsMetrics(results []*cloudwatch.MetricDataResult) {
 func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([]*cloudwatch.MetricDataResult, error) {
 	query := make([]*cloudwatch.MetricDataQuery, len(monitor.metrics))
 	for i,_ := range monitor.metrics {
-		id := *monitor.metrics[i].Dimensions[0].Value
+		//id := *monitor.metrics[i].Dimensions[0].Value
 		query[i] = &cloudwatch.MetricDataQuery{
-			Id: aws.String(strings.ToLower(id)),
+			Id: aws.String(strconv.Itoa(i)),
 			MetricStat: &cloudwatch.MetricStat{
 				Metric: &cloudwatch.Metric{
 					Namespace:  &monitor.metrics[i].Namespace,
@@ -141,8 +141,9 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	for _, metricdata := range awsRes {
 		if len(metricdata.Values) != 0 { 
 			var data MetricData 
+			id,_ := strconv.Atoi(*metricdata.Id)
 			data.TagName = "AWS/EC2"
-			data.TagValue = *metricdata.Id
+			data.TagValue = *monitor.metrics[id].Dimensions[0].Value
 			data.Label = *metricdata.Label
 			data.Values = make([]interface{}, len(metricdata.Timestamps))
 			data.Timestamps = make([]time.Time, len(metricdata.Timestamps))
