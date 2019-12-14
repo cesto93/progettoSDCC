@@ -102,7 +102,7 @@ func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([
 	for i,_ := range monitor.metrics {
 		//id := *monitor.metrics[i].Dimensions[0].Value
 		query[i] = &cloudwatch.MetricDataQuery{
-			Id: aws.String("id-" + strconv.Itoa(i)),
+			Id: aws.String("id_" + strconv.Itoa(i)),
 			MetricStat: &cloudwatch.MetricStat{
 				Metric: &cloudwatch.Metric{
 					Namespace:  &monitor.metrics[i].Namespace,
