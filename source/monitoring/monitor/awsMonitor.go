@@ -141,7 +141,7 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	for _, metricdata := range awsRes {
 		if len(metricdata.Values) != 0 { 
 			var data MetricData 
-			s := strings.Split(*metricdata.Id, " ")
+			s := strings.Split(*metricdata.Id, "_")
 			data.TagName = s[0]
 			data.TagValue = s[1]
 			data.Label = *metricdata.Label
