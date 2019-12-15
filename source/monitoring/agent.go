@@ -100,11 +100,12 @@ func main() {
 	var dbAddr string
 	var monitorBridge, monitorPrometheus monitor.MonitorBridge
 	var myRestarter restarter.Restarter
-	var aws bool
+	var aws, recovering bool
 	var index, next int
 	var start, end time.Time
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
+	flag.BoolVar(&aws, "recovering", false, "Enable the recovery state function")
 	flag.Parse()
 	
 	//wait interval
@@ -164,7 +165,9 @@ func main() {
  	tryed := false
  	
  	fmt.Printf("Starting agent %s\n that observ %s\n", members[index], members[next])
- 	recoverState(dbBridge, monitorBridge, monitorInterval)
+ 	if recovering {
+		recoverState(dbBridge, monitorBridge, monitorInterval)
+	}
 
 	for {
 		now = time.Now()

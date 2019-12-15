@@ -69,7 +69,7 @@ do
 "
 echo 'starting  ${MONITOR_NAMES[$i]} configuration'
 cd ./go/src/progettoSDCC
-git pull git@github.com:cesto93/progettoSDCC -q
+git pull http://github.com/cesto93/progettoSDCC -q
 go build -o ./bin/agent ./source/monitoring/agent.go
 
 echo '$IDS_MONITOR_J' | tee ./configuration/generated/zk_agent.json
@@ -96,6 +96,7 @@ sudo systemctl restart prometheus
 echo 'finished' 
 " &
 done 
+
 
 #zookeeper server conf file
 MYID=0

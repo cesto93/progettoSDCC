@@ -25,7 +25,7 @@ do
 gcloud compute ssh --zone=$ZONE ${NAMES[$i]} --command \
 "
 cd ./go/src/progettoSDCC
-git pull git@github.com:cesto93/progettoSDCC -q
+git pull http://github.com/cesto93/progettoSDCC -q
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
 echo '${PORTS_J[$i]}' | tee ./configuration/generated/port.json
 " -q &

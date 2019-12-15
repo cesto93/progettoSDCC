@@ -39,7 +39,7 @@ do
 "
 echo configuration of monitor
 cd ~/go/src/progettoSDCC
-git pull git@github.com:cesto93/progettoSDCC -q
+git pull http://github.com/cesto93/progettoSDCC -q
 go build -o ./bin/agent ./source/monitoring/agent.go
 cd ./script_gce
 export PATH=$PATH:/snap/bin

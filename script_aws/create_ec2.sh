@@ -1,7 +1,7 @@
 #!/bin/bash
 #parameter start
 IMG=ami-0b69ea66ff7391e80
-TYPE=t2.micro
+TYPE=t2.small
 KEY=myKey
 GROUP=my_group
 GROUP_ID=sg-04d681a46dfb3274e

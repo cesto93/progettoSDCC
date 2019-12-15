@@ -26,7 +26,7 @@ do
 ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[$i]} \
 "
 cd ./go/src/progettoSDCC
-git pull git@github.com:cesto93/progettoSDCC -q
+git pull http://github.com/cesto93/progettoSDCC -q
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
 echo '${PORTS_J[$i]}' | tee ./configuration/generated/port.json
 " &
@@ -40,7 +40,7 @@ IP[0]=$(echo ${INSTANCES[0]} | jq  -r '.[].NetworkInterfaces[].Association.Publi
 ssh  -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[0]} \
 "
 cd ./go/src/progettoSDCC
-git pull git@github.com:cesto93/progettoSDCC -q
+git pull http://github.com/cesto93/progettoSDCC -q
 go build -o ./bin/master ./source/application/word_counter/master/master.go
 echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 echo '$BUCKET' | tee ./configuration/generated/bucket.json

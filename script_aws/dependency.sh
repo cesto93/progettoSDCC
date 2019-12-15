@@ -5,7 +5,7 @@ CONF_MONITOR=$(<../configuration/monitor.json)
 
 #importing configuration
 NAMES=( $(echo $CONF | jq -r '.aws[].name') )
-ZK_SRV_NAMES=( $(echo $CONF_MONITOR | jq -r '.servers_zk.names[]') )
+ZK_SRV_NAMES=( $(echo $CONF_MONITOR | jq -r '.servers_zk_aws.names[]') )
 DB_NAME=$(echo $CONF_MONITOR | jq -r '.db.name')
 
 #depency and project clone
@@ -46,7 +46,7 @@ EOF
 
 cd ./go/src
 sudo rm -rf progettoSDCC
-git clone git@github.com:cesto93/progettoSDCC
+git clone http://github.com/cesto93/progettoSDCC
 mkdir -p ./progettoSDCC/configuration/generated
 mkdir -p ./progettoSDCC/log
 mkdir -p ./progettoSDCC/bin
