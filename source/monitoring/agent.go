@@ -16,6 +16,7 @@ import (
  	sessionTimeout = 10
  	monitorIntervalSeconds = 300
  	restartIntervalSecond = 5
+
  	retryDB = 5
  	retryZK = 5
 
@@ -87,7 +88,7 @@ func recoverState(dbBridge *db.DbBridge, monitorBridge monitor.MonitorBridge, mo
 	for i := 0; err != nil && i < retryDB; i++ {
 		utility.CheckErrorNonFatal(err)
 		start, err = dbBridge.GetLastTimestamp("Up")
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 5)
 	}
 	utility.CheckError(err)
 	end := time.Now().Truncate(monitorInterval)
