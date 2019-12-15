@@ -79,14 +79,17 @@ import (
 
 func recoverState(dbBridge *db.DbBridge, monitorBridge monitor.MonitorBridge, monitorInterval time.Duration) {
 	start, err := dbBridge.GetLastTimestamp("Up")
-	utility.CheckError(err)
+	i := 0
+	if err != nil && i < 5 {
+		start, err = dbBridge.GetLastTimestamp("Up")
+	}
+	utility.CheckErrorNonFatal(err)
 	now := time.Now()
 	end := start.Add(monitorInterval)
 	for ; start.After(now); start.Add(monitorInterval) {
 		saveMetrics(monitorBridge, dbBridge, *start, end)
 		end.Add(monitorIntervalSeconds)
 	}
-	
 }
 
 func main() {

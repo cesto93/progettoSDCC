@@ -28,7 +28,6 @@ cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
 echo '${PORTS_J[$i]}' | tee ./configuration/generated/port.json
-echo '$i' | tee ./configuration/generated/id_worker.json
 " -q &
 done
 
