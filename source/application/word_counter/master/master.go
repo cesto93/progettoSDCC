@@ -168,6 +168,8 @@ func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 			aliveNodes = append(aliveNodes, node)
 		}
 	}
+	
+	fmt.Printf("Using nodes %v\n", aliveNodes)
 
 	for i := range aliveNodes {
 		err = callLoadTopologyOnWorker(aliveNodes, aliveNodes[i])
