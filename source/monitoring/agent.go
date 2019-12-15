@@ -74,7 +74,7 @@ import (
  		utility.CheckError(err)
  		if zkBridge.IsDead != false {
 			fmt.Println("This is is dead: " + id)
-			for tryed != false  { 
+			for tryed == false  { 
 				tryed, err = myRestarter.Restart(id)
 				utility.CheckErrorNonFatal(err)
 				if tryed {
