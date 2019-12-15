@@ -6,7 +6,6 @@ import (
 	"sync"
 	"fmt"
 	"time"
-	"strconv"
 	"progettoSDCC/source/application/word_counter/wordCountUtils"
 	"progettoSDCC/source/application/word_counter/rpcUtils"
 	"progettoSDCC/source/utility"
@@ -20,14 +19,15 @@ var mapper_words []wordCountUtils.WordCount
 var reducer_words []wordCountUtils.WordCount
 var worker_state int
 var mux sync.Mutex
+
 var index int
+var port string
 
 const (
 	State_Idle = 0
 	State_Map = 1
 	State_Reducer = 2
-	nodesJsonPath = "../configuration/generated/app_node.json"
-	idWorkerPath = "../configuration/generated/id_worker.json"
+	portJsonPath = "../configuration/generated/port.json"
 	metricsJsonPath = "../log/app_metrics.json"
 )
 
@@ -130,7 +130,12 @@ func (t *Worker) LoadTopology(nodes_list []rpcUtils.Node, res *bool) error {
 	reducer_words = nil
 	mapper_words = nil
 	mux.Unlock()
-
+	
+	for i:= range nodes {
+		if nodes[i].Port == port {
+			index = i
+		}
+	}
 	*res = true
 	return nil
 }
@@ -164,18 +169,17 @@ func logWorkerData(words []wordCountUtils.WordCount, latency time.Duration, work
 }
 
 func main() {
-	var nodeConf rpcUtils.NodeConfiguration
 	var err error
 	if len(os.Args) == 2 {
-		index, err = strconv.Atoi(os.Args[1])
+		port = os.Args[1]
 		utility.CheckError(err)
 	} else {
-		err = utility.ImportJson(idWorkerPath, &index)
+		utility.ImportJson(portJsonPath, &port)
  		utility.CheckError(err)
 	}
-	utility.ImportJson(nodesJsonPath, &nodeConf)
+	
 	utility.CheckError(err)
-	fmt.Println("Starting rpc service on worker node at port " + nodeConf.Workers[index].Port)
+	fmt.Println("Starting rpc service on worker node at port " + port)
 	worker := new(Worker)
-	rpcUtils.ServRpc(nodeConf.Workers[index].Port, "Worker", worker)
+	rpcUtils.ServRpc(port, "Worker", worker)
 }

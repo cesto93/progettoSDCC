@@ -7,6 +7,7 @@ BUCKET=$(<../configuration/generated/bucket.json)
 #importing configuration
 NAMES=( $(echo $CONF | jq -r '.aws[].name') )
 PORTS=( $(echo $CONF | jq -r '.aws[].port') )
+PORTS_J=( $(echo $CONF | jq '.aws[].port') )
 
 #workers
 for (( i=1; i<${#NAMES[@]}; i++ ));
@@ -22,14 +23,12 @@ APP_NODE=$(jq -n --arg mport ${PORTS[0]} --argjson workers "$WORKERS_J" '{master
 #ssh conn
 for (( i=1; i<${#NAMES[@]}; i++ ));
 do
-j=$(($i - 1))
 ssh -o "StrictHostKeyChecking=no" -i "$KEY_POS" ec2-user@${INSTANCE_DNS[$i]} \
 "
 cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
-echo '$APP_NODE' | tee ./configuration/generated/app_node.json
-echo '$j' | tee ./configuration/generated/id_worker.json
+echo '${PORTS_J[$i]}' | tee ./configuration/generated/port.json
 " &
 done
 
@@ -47,4 +46,5 @@ echo '$APP_NODE' | tee ./configuration/generated/app_node.json
 echo '$BUCKET' | tee ./configuration/generated/bucket.json
 "
 
+wait
 echo "Connect client to ${IP[0]}:${PORTS[0]}"

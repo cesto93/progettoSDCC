@@ -7,6 +7,7 @@ CONF=$(<../configuration/word_count.json)
 NAMES=( $(echo $CONF | jq -r '.gc[].name') )
 MPORT=$(echo $CONF | jq -r '.aws[0].port')
 PORTS=( $(echo $CONF | jq -r '.gc[].port') )
+PORTS_J=( $(echo $CONF | jq '.gc[].port') )
 
 #workers
 for (( i=0; i<${#NAMES[@]}; i++ ));
@@ -26,7 +27,7 @@ gcloud compute ssh --zone=$ZONE ${NAMES[$i]} --command \
 cd ./go/src/progettoSDCC
 git pull git@github.com:cesto93/progettoSDCC -q
 go build -o ./bin/worker ./source/application/word_counter/worker/worker.go
-echo '$APP_NODE' | tee ./configuration/generated/app_node.json
+echo '${PORTS_J[$i]}' | tee ./configuration/generated/port.json
 echo '$i' | tee ./configuration/generated/id_worker.json
 " -q &
 done
