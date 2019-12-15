@@ -8,14 +8,14 @@ import (
 	"progettoSDCC/source/monitoring/monitor"
 )
 
-func NewAppMetrics(appName string, labels []string, values []interface{}) []monitor.MetricData {
+func NewAppMetrics(tagName string, tagValue string, labels []string, values []interface{}) []monitor.MetricData {
 	var metrics []monitor.MetricData
 	timestamp := []time.Time{time.Now()}
 	for i,_ := range labels {
 		metrics = append(metrics, monitor.MetricData  {
 				Label : labels[i],
-				TagName : "App",
-				TagValue : appName,
+				TagName : tagName,
+				TagValue : tagValue,
 				Timestamps: timestamp,
 				Values : []interface{}{values[i]},
 		})

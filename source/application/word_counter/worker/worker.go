@@ -78,7 +78,7 @@ func (t *Worker) Map(text string, res *bool) error {
 	//LOG APP METRICS
 	end := time.Now()
 	diff := end.Sub(start)
-	go logWorkerData(temp, diff, fmt.Sprintf("Worker_%d", index))
+	go logWorkerData(temp, diff, fmt.Sprintf("%d", index))
 	//END LOG APP METRICS
 
 	*res = true
@@ -134,6 +134,7 @@ func (t *Worker) LoadTopology(nodes_list []rpcUtils.Node, res *bool) error {
 	for i:= range nodes {
 		if nodes[i].Port == port {
 			index = i
+			break
 		}
 	}
 	*res = true
@@ -158,15 +159,18 @@ func (t *Worker) GetResults(state bool, res *[]wordCountUtils.WordCount) error {
 	return nil
 }
 
+//LOG APP METRICS
 func logWorkerData(words []wordCountUtils.WordCount, latency time.Duration, workerId string) {
 	nWords := wordCountUtils.CountTotalWords(words)
 	sec := latency.Seconds()
-	labels := []string{"WordElaborated", "Latency"}
-	values := []interface{}{nWords, sec}
-	myMetrics:= appMetrics.NewAppMetrics("WordCount_Worker_Map" + workerId, labels, values)
+	throughput := float64(nWords) / sec
+	labels := []string{"WordElaborated", "ElaborationTime", "ThroughPut"}
+	values := []interface{}{nWords, sec, throughput}
+	myMetrics:= appMetrics.NewAppMetrics("WordCount", "Mapper_" + workerId, labels, values)
 	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
 	utility.CheckErrorNonFatal(err)
 }
+//END LOG APP METRICS
 
 func main() {
 	var err error

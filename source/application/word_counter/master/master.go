@@ -125,7 +125,7 @@ func getResultsOnWorkers(nodes []rpcUtils.Node) ([]wordCountUtils.WordCount, err
 		//LOG APP METRICS
 		end := time.Now()
 		diff := end.Sub(start)
-		go logWorkerData(counted, diff, fmt.Sprintf("Worker_%d", i))
+		go logWorkerData(counted, diff, fmt.Sprintf("%d", i))
 		//END LOG APP METRICS
 
 		for j := range counted {
@@ -204,12 +204,14 @@ func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 	return nil
 }
 
+//LOG APP METRICS
 func logWorkerData(words []wordCountUtils.WordCount, latency time.Duration, workerId string) {
 	nWords := wordCountUtils.CountTotalWords(words)
 	sec := latency.Seconds()
-	labels := []string{"WordElaborated", "Latency"}
-	values := []interface{}{nWords, sec}
-	myMetrics:= appMetrics.NewAppMetrics("WordCount_Reduce_" + workerId, labels, values)
+	throughput := float64(nWords) / sec
+	labels := []string{"WordElaborated", "ElaborationTime", "ThroughPut"}
+	values := []interface{}{nWords, sec, throughput}
+	myMetrics:= appMetrics.NewAppMetrics("WordCount", "Reducer_" + workerId, labels, values)
 	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
 	utility.CheckErrorNonFatal(err)
 }
@@ -220,10 +222,11 @@ func logTotalData(words []wordCountUtils.WordCount, latency time.Duration, worke
 	throughput := float64(nWords) / sec
 	labels := []string{"WordElaborated", "ElaborationTime", "ThroughPut", "Workers"}
 	values := []interface{}{nWords, sec, throughput, workers}
-	myMetrics:= appMetrics.NewAppMetrics("WordCount", labels, values)
+	myMetrics:= appMetrics.NewAppMetrics("WordCount", "Global", labels, values)
 	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
 	utility.CheckErrorNonFatal(err)
 }
+//END LOG APP METRICS
 
 func main() {
 	utility.ImportJson(nodesJsonPath, &nodeConf)
