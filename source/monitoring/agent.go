@@ -103,6 +103,10 @@ func main() {
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
 	flag.Parse()
+	
+	//wait interval
+	monitorInterval := monitorIntervalSeconds * time.Second
+	restartInterval := time.Second * restartIntervalSecond
 
 	// db conf
 	err := utility.ImportJson(dbAddrPath, &dbAddr)
@@ -122,7 +126,7 @@ func main() {
  	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
  	for err != nil {
  		fmt.Println(err)
- 		time.Sleep(time.Second * restartIntervalSecond)
+ 		time.Sleep(restartInterval)
  		zkBridge, err = zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
  	}
  	
@@ -134,7 +138,6 @@ func main() {
  	}
  	go checkMembersDead(zkBridge, members[next])
 
- 	monitorInterval := monitorIntervalSeconds * time.Second
  	now := time.Now().Truncate(monitorInterval)
 	lastMeasure := now.Add(-monitorInterval)
 	nextMeasure := now
@@ -161,7 +164,7 @@ func main() {
  	recoverState(dbBridge, monitorBridge, monitorInterval)
 
 	for {
-		time.Sleep(time.Second * restartIntervalSecond)
+		time.Sleep(restartInterval)
 		now = time.Now()
 		if zkBridge.IsDead != false {
 			fmt.Println("This is is dead: " + members[next])
