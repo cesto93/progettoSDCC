@@ -84,7 +84,7 @@ import (
 
 func recoverState(dbBridge *db.DbBridge, monitorBridge monitor.MonitorBridge, monitorInterval time.Duration) {
 	start, err := dbBridge.GetLastTimestamp("Up")
-	if i := 0; err != nil && i < retryDB {
+	for i := 0; err != nil && i < retryDB; i++ {
 		utility.CheckErrorNonFatal(err)
 		start, err = dbBridge.GetLastTimestamp("Up")
 		time.Sleep(time.Second)
