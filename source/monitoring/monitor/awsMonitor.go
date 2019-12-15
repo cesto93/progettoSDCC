@@ -117,7 +117,7 @@ func (monitor *AwsMonitor) getMetrics(startTime time.Time, endTime time.Time) ([
 		}
 	}
 
-	//fmt.Printf("query: %v\n", query)
+	fmt.Printf("query: %v\n", query)
 
 	resp, err := monitor.client.GetMetricData(&cloudwatch.GetMetricDataInput{
 		EndTime:           &endTime,
