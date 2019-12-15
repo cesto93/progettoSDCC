@@ -18,7 +18,7 @@ import (
  	restartIntervalSecond = 5
 
  	retryDB = 5
- 	retryZK = 5
+ 	retryZK = 10
 
  	dbAddrPath = "../configuration/generated/db_addr.json"
  	dbName = "mydb"
@@ -156,7 +156,6 @@ func main() {
  		err = zkBridge.RegisterMember(members[index], "info")
  		time.Sleep(time.Second * 3)
  	}
- 	go restoreMembersDead(zkBridge, members[next], myRestarter, restartInterval)
 
  	now := time.Now().Truncate(monitorInterval)
 	lastMeasure := now.Add(-monitorInterval)
@@ -177,6 +176,8 @@ func main() {
  		start = lastMeasure
  		end = nextMeasure
  	}
+ 	
+ 	go restoreMembersDead(zkBridge, members[next], myRestarter, restartInterval)
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
  	
  	fmt.Printf("Starting agent %s\n that observ %s\n", members[index], members[next])
