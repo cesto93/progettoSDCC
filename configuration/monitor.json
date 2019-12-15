@@ -23,7 +23,7 @@
   "aws": [
     {
       "name": "master",
-      "monitored": ["master", "worker-2", "worker-3"]
+      "monitored": ["master"]
     },
     {
       "name": "worker-1",
@@ -31,25 +31,17 @@
     },
     {
       "name": "worker-2",
-      "monitored": ["worker-2"]
-    },
-    {
-      "name": "worker-3",
-      "monitored": ["worker-3"]
+      "monitored": ["worker-2", "worker-3"]
     }
   ],
   "gc": [
-	{
+    {
       "name": "worker-4",
       "monitored": ["worker-4"]
     },
-	{
+    {
       "name": "worker-5",
       "monitored": ["worker-5"]
-    },
-	{
-      "name": "worker-6",
-      "monitored": ["worker-4", "worker-6"]
     }
-	]
+  ]
 }

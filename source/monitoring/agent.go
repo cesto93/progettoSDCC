@@ -16,6 +16,8 @@ import (
  	sessionTimeout = 10
  	monitorIntervalSeconds = 300
  	restartIntervalSecond = 5
+ 	retryDB = 5
+ 	retryZK = 5
 
  	dbAddrPath = "../configuration/generated/db_addr.json"
  	dbName = "mydb"
@@ -27,7 +29,6 @@ import (
 
  	EC2MetricJsonPath = "../configuration/metrics_ec2.json"
  	EC2InstPath = "../configuration/generated/ec2_inst.json"
- 	StatPath = "../configuration/monitoring_stat.json"
 
  	GCEprojectIDPath = "../configuration/generated/gce_project_id.json"
  	GcloudMetricsJsonPath = "../configuration/metrics_gce.json"
@@ -43,8 +44,10 @@ import (
  	utility.CheckError(err)
  	printMetrics(data, start, end)
  	err = dbBridge.SaveMetrics(data)
- 	for err != nil {
+ 	for i:=0; err != nil && i < retryDB; i++  {
+		utility.CheckErrorNonFatal(err)
  		err = dbBridge.SaveMetrics(data)
+ 		time.Sleep(time.Second)
  	}
  }
 
@@ -54,8 +57,10 @@ import (
  	if (metrics != nil) {
  		printMetrics(metrics, metrics[0].Timestamps[0], metrics[0].Timestamps[0])
  		err = dbBridge.SaveMetrics(metrics)
- 		for err != nil {
+ 		for i:=0; err != nil && i < retryDB; i++  {
+			utility.CheckErrorNonFatal(err)
  			err = dbBridge.SaveMetrics(metrics)
+			time.Sleep(time.Second)
  		}
  	}
  }
@@ -79,17 +84,14 @@ import (
 
 func recoverState(dbBridge *db.DbBridge, monitorBridge monitor.MonitorBridge, monitorInterval time.Duration) {
 	start, err := dbBridge.GetLastTimestamp("Up")
-	i := 0
-	if err != nil && i < 5 {
+	if i := 0; err != nil && i < retryDB {
+		utility.CheckErrorNonFatal(err)
 		start, err = dbBridge.GetLastTimestamp("Up")
+		time.Sleep(time.Second)
 	}
-	utility.CheckErrorNonFatal(err)
-	now := time.Now()
-	end := start.Add(monitorInterval)
-	for ; start.After(now); start.Add(monitorInterval) {
-		saveMetrics(monitorBridge, dbBridge, *start, end)
-		end.Add(monitorIntervalSeconds)
-	}
+	utility.CheckError(err)
+	end := time.Now().Truncate(monitorInterval)
+	saveMetrics(monitorBridge, dbBridge, *start, end)
 }
 
 func main() {
@@ -124,17 +126,17 @@ func main() {
  	fmt.Println(zkServerAddresses) //less than 3 servers dosen't make zookeeper fault tolerant
 
  	zkBridge, err := zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
- 	for err != nil {
- 		fmt.Println(err)
- 		time.Sleep(restartInterval)
+ 	for i:=0; err != nil && i < retryZK; i++  {
+ 		utility.CheckErrorNonFatal(err)
  		zkBridge, err = zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
+ 		time.Sleep(time.Second)
  	}
  	
  	err = zkBridge.RegisterMember(members[index], "info")
  	for err != nil {
- 		fmt.Println(err)
- 		time.Sleep(time.Second * restartIntervalSecond)
+ 		utility.CheckErrorNonFatal(err)
  		err = zkBridge.RegisterMember(members[index], "info")
+ 		time.Sleep(time.Second)
  	}
  	go checkMembersDead(zkBridge, members[next])
 
@@ -164,7 +166,6 @@ func main() {
  	recoverState(dbBridge, monitorBridge, monitorInterval)
 
 	for {
-		time.Sleep(restartInterval)
 		now = time.Now()
 		if zkBridge.IsDead != false {
 			fmt.Println("This is is dead: " + members[next])
@@ -173,7 +174,7 @@ func main() {
 
 			if tryed {
 				fmt.Println("Tried to restart")
-				time.Sleep(time.Second * restartIntervalSecond)
+				time.Sleep(restartInterval)
 				zkBridge.IsDead = false
 				tryed = false
 			}
@@ -187,5 +188,6 @@ func main() {
 			start = start.Add(monitorInterval)
 			end = end.Add(monitorInterval)
 		}
+		time.Sleep(restartInterval)
 	}
  }

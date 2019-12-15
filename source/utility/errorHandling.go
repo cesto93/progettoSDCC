@@ -10,6 +10,6 @@ func CheckError(err error) {
 
 func CheckErrorNonFatal(err error) {
 	if err != nil {
-		log.Print(err)
+		log.Printf("NON FATAL ERROR: %v", err)
 	}
 }
