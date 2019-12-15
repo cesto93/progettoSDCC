@@ -58,6 +58,7 @@ func (t *Worker) Map(text string, res *bool) error {
 	start := time.Now()
 	//END LOG APP METRICS
 	
+	fmt.Println("Received map request\n")
 	if worker_state == State_Reducer {
 		fmt.Println("busy\n")
 	}
@@ -140,6 +141,7 @@ func (t *Worker) CheckConn(arg bool, res *bool) error {
 }
 
 func (t *Worker) GetResults(state bool, res *[]wordCountUtils.WordCount) error {
+	fmt.Println("Received reduce request\n")
 	if worker_state == State_Reducer {
 		*res = wordCountUtils.CountWords(reducer_words)
 		mux.Lock()
