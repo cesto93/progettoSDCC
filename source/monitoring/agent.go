@@ -77,6 +77,18 @@ import (
 	} 
 }
 
+func recoverState(dbBridge *db.DbBridge, monitorBridge monitor.MonitorBridge, monitorInterval time.Duration) {
+	start, err := dbBridge.GetLastTimestamp("Up")
+	utility.CheckError(err)
+	now := time.Now()
+	end := start.Add(monitorInterval)
+	for ; start.After(now); start.Add(monitorInterval) {
+		saveMetrics(monitorBridge, dbBridge, *start, end)
+		end.Add(monitorIntervalSeconds)
+	}
+	
+}
+
 func main() {
 	var zkServerAddresses, members []string
 	var dbAddr string
@@ -141,7 +153,9 @@ func main() {
  	}
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
  	tryed := false
+ 	
  	fmt.Printf("Starting agent %s\n that observ %s\n", members[index], members[next])
+ 	recoverState(dbBridge, monitorBridge, monitorInterval)
 
 	for {
 		time.Sleep(time.Second * restartIntervalSecond)

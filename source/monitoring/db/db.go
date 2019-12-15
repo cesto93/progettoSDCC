@@ -2,6 +2,8 @@ package db
 
 import(
 	"fmt"
+	"time"
+	"encoding/json"
 	_ "github.com/influxdata/influxdb1-client" // this is important because of the bug in go mod
 	client "github.com/influxdata/influxdb1-client/v2"
 	"progettoSDCC/source/monitoring/monitor"
@@ -17,7 +19,6 @@ func NewDb(addr string, db string) *DbBridge {
 }
 
 func (d *DbBridge) SaveMetrics(data []monitor.MetricData) error {
-	// Make client
 	c, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr: "http://" + d.Addr,
 	})
@@ -26,18 +27,11 @@ func (d *DbBridge) SaveMetrics(data []monitor.MetricData) error {
 	}
 	defer c.Close()
 
-	// Create a new point batch
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  d.DB,
 		Precision: "s",
 	})
 
-	// Create a point and add to batch
-	/*fields := map[string]interface{}{
-		"idle":   10.1,
-		"system": 53.3,
-		"user":   46.6,
-	}*/
 	for _, metric := range data {
 		for i, _ := range metric.Values {
 			tags := map[string]string{metric.TagName: metric.TagValue}
@@ -50,10 +44,34 @@ func (d *DbBridge) SaveMetrics(data []monitor.MetricData) error {
 		}
 	}
 
-	// Write the batch
 	err = c.Write(bp)
 	if err != nil {
 		return fmt.Errorf("error in db write %v", err)
 	}
 	return nil
+}
+
+func (d *DbBridge) GetLastTimestamp(metricName string) (*time.Time, error){
+	c, err := client.NewHTTPClient(client.HTTPConfig{
+		Addr: "http://" + d.Addr,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error in client generation %v", err)
+	}
+	defer c.Close()
+
+	q := client.NewQuery("SELECT last(value) FROM " + metricName, d.DB, "s")
+	response, err := c.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("error in query %v", err)
+	}
+	if response.Error() != nil {
+		return nil, fmt.Errorf("error in query %v", response.Error())
+	}
+	fmt.Println(response.Results[0])
+	fmt.Println(response.Results[0].Series[0])
+	json := response.Results[0].Series[0].Values[0][0].(json.Number)
+	num,_ := json.Int64()
+	last := time.Unix(num, 0)
+	return &last, nil
 }
