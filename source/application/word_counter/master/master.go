@@ -125,7 +125,7 @@ func getResultsOnWorkers(nodes []rpcUtils.Node) ([]wordCountUtils.WordCount, err
 		//LOG APP METRICS
 		end := time.Now()
 		diff := end.Sub(start)
-		go logWorkerData(counted, diff, fmt.Sprintf("Worker %d", i))
+		go logWorkerData(counted, diff, fmt.Sprintf("Worker_%d", i))
 		//END LOG APP METRICS
 
 		for j := range counted {
@@ -207,7 +207,7 @@ func logWorkerData(words []wordCountUtils.WordCount, latency time.Duration, work
 	sec := latency.Seconds()
 	labels := []string{"WordElaborated", "Latency"}
 	values := []interface{}{nWords, sec}
-	myMetrics:= appMetrics.NewAppMetrics("WordCount_Worker_Reduce", labels, values)
+	myMetrics:= appMetrics.NewAppMetrics("WordCount_Reduce_" + workerId, labels, values)
 	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
 	utility.CheckErrorNonFatal(err)
 }

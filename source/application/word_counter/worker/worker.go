@@ -77,7 +77,7 @@ func (t *Worker) Map(text string, res *bool) error {
 	//LOG APP METRICS
 	end := time.Now()
 	diff := end.Sub(start)
-	go logWorkerData(temp, diff, fmt.Sprintf("Worker %d", index))
+	go logWorkerData(temp, diff, fmt.Sprintf("Worker_%d", index))
 	//END LOG APP METRICS
 
 	*res = true
@@ -156,7 +156,7 @@ func logWorkerData(words []wordCountUtils.WordCount, latency time.Duration, work
 	sec := latency.Seconds()
 	labels := []string{"WordElaborated", "Latency"}
 	values := []interface{}{nWords, sec}
-	myMetrics:= appMetrics.NewAppMetrics("WordCount_Worker_Map", labels, values)
+	myMetrics:= appMetrics.NewAppMetrics("WordCount_Worker_Map" + workerId, labels, values)
 	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
 	utility.CheckErrorNonFatal(err)
 }
