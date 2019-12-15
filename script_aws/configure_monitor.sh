@@ -11,15 +11,11 @@ ZK_SERVER_PORTS=$(echo $CONF_MONITOR | jq -r '.servers_zk_aws.ports_server')
 PORT_DB="8086"
 
 #getting instance DNS and ID
-declare -A ID_MAP_J
-declare -A IP_MAP_J
 for (( i=0; i<${#MONITOR_NAMES[@]}; i++ ));
 do
 	INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${MONITOR_NAMES[$i]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
 	INST_DNS[$i]=$(echo $INST | jq -r '.[].PublicDnsName')
 	ID_MONITOR_J[$i]=$(echo $INST | jq '[.[].InstanceId]')
-	ID_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].InstanceId]')
-	IP_MAP_J[${MONITOR_NAMES[$i]}]=$(echo $INST | jq '[.[].NetworkInterfaces[].PrivateIpAddress]')
 done
 IDS_MONITOR_J=$(echo ${ID_MONITOR_J[@]} | jq -s 'add | flatten')
 
@@ -51,15 +47,16 @@ do
 	MONITORED_NAMES=( $(echo $CONF_MONITOR | jq -r --argjson index "$i" '.aws[$index].monitored[]') )
 	for (( j=0; j<${#MONITORED_NAMES[@]}; j++ ));
 	do
-		ID_MONITORED_J[$j]=$(echo ${ID_MAP_J[${MONITORED_NAMES[$j]}]} | jq -s '.[]' )
-		IP_MONITORED_J[$j]=$(echo ${IP_MAP_J[${MONITORED_NAMES[$j]}]} | jq -s '.[]' )
+		INST=$(aws ec2 describe-instances --filters Name=tag:Name,Values=${MONITORED_NAMES[$j]}  --query 'Reservations[*].Instances[*]' | jq 'flatten')
+		ID_J=$(echo $INST | jq '[.[].InstanceId]')
+		IP_J=$(echo $INST | jq '[.[].NetworkInterfaces[].PrivateIpAddress]')
+		ID_MONITORED_J[$j]=$(echo $ID_J | jq -s '.[]' )
+		IP_MONITORED_J[$j]=$(echo $IP_J | jq -s '.[]' )
 	done
 	ID_MONITORED_M_J=$(echo ${ID_MONITORED_J[@]} | jq -s 'add')
-	#IP_MONITORED_M_J=$(echo ${IP_MONITORED_J[@]} | jq -s 'add')
 	BASH_TARGS=( $(echo ${IP_MONITORED_J[@]} | jq -r '.[]' ) )
 	
 	TARGS="'${BASH_TARGS[0]}:9100'"
-	#for j in ${PROVA[@]};
 	for ((j=1; j<${#BASH_TARGS[@]}; j++));
 	do
 		TARGS="$TARGS, '${BASH_TARGS[j]}:9100'"
