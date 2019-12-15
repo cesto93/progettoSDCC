@@ -5,10 +5,12 @@ import (
 	"os"
 	"sync"
 	"fmt"
+	"time"
 	"strconv"
 	"progettoSDCC/source/application/word_counter/wordCountUtils"
 	"progettoSDCC/source/application/word_counter/rpcUtils"
 	"progettoSDCC/source/utility"
+	"progettoSDCC/source/appMetrics"
 )
 
 type Worker int
@@ -18,6 +20,7 @@ var mapper_words []wordCountUtils.WordCount
 var reducer_words []wordCountUtils.WordCount
 var worker_state int
 var mux sync.Mutex
+var index int
 
 const (
 	State_Idle = 0
@@ -25,6 +28,7 @@ const (
 	State_Reducer = 2
 	nodesJsonPath = "../configuration/generated/app_node.json"
 	idWorkerPath = "../configuration/generated/id_worker.json"
+	metricsJsonPath = "../log/app_metrics.json"
 )
 
 func reducerKey(word string, n_nodes int) int {
@@ -49,6 +53,11 @@ func shaffleAndSort(words []wordCountUtils.WordCount, n_nodes int) [][]wordCount
 }
 
 func (t *Worker) Map(text string, res *bool) error {
+	
+	//LOG APP METRICS
+	start := time.Now()
+	//END LOG APP METRICS
+	
 	if worker_state == State_Reducer {
 		fmt.Println("busy\n")
 	}
@@ -61,8 +70,15 @@ func (t *Worker) Map(text string, res *bool) error {
 			temp = append(temp, mapper_words[i])
 		}
 	}
-	mapper_words = wordCountUtils.CountWords(temp) //We do a preliminary reduce
+	temp = wordCountUtils.CountWords(temp) //We do a preliminary reduce
+	mapper_words = temp
 	mux.Unlock()
+	
+	//LOG APP METRICS
+	end := time.Now()
+	diff := end.Sub(start)
+	go logWorkerData(temp, diff, fmt.Sprintf("Worker %d", index))
+	//END LOG APP METRICS
 
 	*res = true
 	return nil
@@ -135,9 +151,18 @@ func (t *Worker) GetResults(state bool, res *[]wordCountUtils.WordCount) error {
 	return nil
 }
 
+func logWorkerData(words []wordCountUtils.WordCount, latency time.Duration, workerId string) {
+	nWords := wordCountUtils.CountTotalWords(words)
+	sec := latency.Seconds()
+	labels := []string{"WordElaborated", "Latency"}
+	values := []interface{}{nWords, sec}
+	myMetrics:= appMetrics.NewAppMetrics("WordCount_Worker_Map", labels, values)
+	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
+	utility.CheckErrorNonFatal(err)
+}
+
 func main() {
 	var nodeConf rpcUtils.NodeConfiguration
-	var index int
 	var err error
 	if len(os.Args) == 2 {
 		index, err = strconv.Atoi(os.Args[1])

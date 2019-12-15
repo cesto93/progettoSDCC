@@ -105,6 +105,11 @@ func callLoadTopologyOnWorker(topology []rpcUtils.Node, node rpcUtils.Node) erro
 func getResultsOnWorkers(nodes []rpcUtils.Node) ([]wordCountUtils.WordCount, error) {
 	var res []wordCountUtils.WordCount
 	for i := range nodes {
+		
+		//LOG APP METRICS
+		start := time.Now()
+		//END LOG APP METRICS
+		
 		client, err := rpc.DialHTTP("tcp", nodes[i].Address + ":" + nodes[i].Port)
 		if err != nil {
 			return nil, fmt.Errorf("Error in dialing: %v", err)
@@ -116,7 +121,12 @@ func getResultsOnWorkers(nodes []rpcUtils.Node) ([]wordCountUtils.WordCount, err
 		if err != nil {
 			return nil, fmt.Errorf("Error in rpcMap: %v", err)
 		}
-		//fmt.Println("words by reducer ", i, " = ", wordCountUtils.CountTotalWords(counted))
+		
+		//LOG APP METRICS
+		end := time.Now()
+		diff := end.Sub(start)
+		go logWorkerData(counted, diff, fmt.Sprintf("Worker %d", i))
+		//END LOG APP METRICS
 
 		for j := range counted {
 			res = append(res, counted[j])
@@ -143,7 +153,10 @@ func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 	var err error
 	var aliveNodes []rpcUtils.Node
 	fmt.Println("Request received")
+	
+	//LOG APP METRICS
 	start := time.Now()
+	//END LOG APP METRICS
 
 	words := readWordfilesFromS3(wordFiles, bucketName)
 
@@ -178,20 +191,32 @@ func (t *Master) DoWordCount(wordFiles []string, res *bool) error{
 		return err
 	}
 	saveResults(counted, "WordCount_Res")
-
+	
+	//LOG APP METRICS
 	end := time.Now()
 	diff := end.Sub(start)
-	go logData(counted, diff, len(nodeConf.Workers))
+	go logTotalData(counted, diff, len(nodeConf.Workers))
+	//END LOG APP METRICS
 
 	*res = true
 	return nil
 }
 
-func logData(words []wordCountUtils.WordCount, latency time.Duration, workers int) {
+func logWorkerData(words []wordCountUtils.WordCount, latency time.Duration, workerId string) {
+	nWords := wordCountUtils.CountTotalWords(words)
+	sec := latency.Seconds()
+	labels := []string{"WordElaborated", "Latency"}
+	values := []interface{}{nWords, sec}
+	myMetrics:= appMetrics.NewAppMetrics("WordCount_Worker_Reduce", labels, values)
+	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)
+	utility.CheckErrorNonFatal(err)
+}
+
+func logTotalData(words []wordCountUtils.WordCount, latency time.Duration, workers int) {
 	nWords := wordCountUtils.CountTotalWords(words)
 	sec := latency.Seconds()
 	throughput := float64(nWords) / sec
-	labels := []string{"WordElaboratedApplication", "ElaborationTime", "ThroughPutApplication", "Workers"}
+	labels := []string{"WordElaborated", "ElaborationTime", "ThroughPut", "Workers"}
 	values := []interface{}{nWords, sec, throughput, workers}
 	myMetrics:= appMetrics.NewAppMetrics("WordCount", labels, values)
 	err:= appMetrics.AppendApplicationMetrics(metricsJsonPath, myMetrics)

@@ -24,7 +24,6 @@ For setup the instance to monitoring and wordcount application you need to:
     - 1050-1060 (rpc)
     - 9090, 9100 (prometheus)
 * Create the instance and attach the IAM role and security group, also add names to them
-* Set the names of the instance in the aws section of the json files /configuration/monitor.json /configuration/word_count.json
 * Set the metrics to measure by setting /configuration/metrics_ec2.json /configuration/metrics_s3.json
 * launch script /script_aws/depency.sh to install depency
 
@@ -44,9 +43,9 @@ N.B.:
 -	by default only a subset of metrics are scraped by prometheus, gce and stackdriver; those metrics are specified in metrics_prometheus.json and metrics_gce.json, and can be expanded at will
 -	only way for prometheus to connect to the monitored instances is via IP address, connecting through node exporter at port 9100, so ensure to start all instances you want to monitor and to allow both inbound and outbound traffic on the aforementioned port before running the script set_instances_to_monitor.sh (gce IPs are dynamically changed at each restart)
 
-##Monitoring
+## Monitoring
 
-###Configuration
+### Configuration
 * The monitoring agent configuration is saved in the file /configuration/monitor.json
 * The metrics monitored are taken from:
     * /configuration/metrics_ec2.json
@@ -57,13 +56,18 @@ N.B.:
 
 * To configure aws monitoring run script ./script_aws/configure_monitoring.sh
 * To configure gce monitoring run script ./script_gce/configure_monitoring.sh
-* To add monitoring at startup on aws run add add_statup.sh
+* To add monitoring at startup on AWS run ./script_aws/add_statup.sh
+* To add moitoring at startup on GCE run ./script_gce/add_statup.sh
 * Set the grafana datasource on influxdb on http://ADDR:8086
+
+### Usage
+After configuration you should restart all instances then monitoring is active
 
 ## Application
 
 ###Configuration
-The node configuration is done via a json file located at /configuration/word_count.json  
+The node configuration is done via a json file located at /configuration/word_count.json
+The bucket configuration is done via a json file located at /configuration/generated/bucket.json  
 The ip of the nodes are gathered by the script files and parse in a json file at /configuration/generated/app_node.json.  
 To test the app in local or if you want to manually set the ip use this file directly.  
 
@@ -78,7 +82,6 @@ The client of the application use different flags for specifing different operat
     * -count this command do the wordcount of the files in the bucket identified by given names
 
 * This are the commands for arg specification:
-    * -bucket (OPTIONAL) specified to use a bucket that MUST be existent
     * -names (USED with load/delete/count)specifies the names for the S3 file in the bucket to use/load/delete
     * -paths (USED with load) specifies the paths for the local file to upload
     * -serverAddr (USED with count) specifie the address of the server for the rpc requiest to wordcount operation
