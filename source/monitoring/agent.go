@@ -48,7 +48,7 @@ import (
  	for i:=0; err != nil && i < retryDB; i++  {
 		utility.CheckErrorNonFatal(err)
  		err = dbBridge.SaveMetrics(data)
- 		time.Sleep(time.Second)
+ 		time.Sleep(time.Second * 3)
  	}
  }
 
@@ -61,7 +61,7 @@ import (
  		for i:=0; err != nil && i < retryDB; i++  {
 			utility.CheckErrorNonFatal(err)
  			err = dbBridge.SaveMetrics(metrics)
-			time.Sleep(time.Second)
+			time.Sleep(time.Second * 3)
  		}
  	}
  }
@@ -88,7 +88,7 @@ func recoverState(dbBridge *db.DbBridge, monitorBridge monitor.MonitorBridge, mo
 	for i := 0; err != nil && i < retryDB; i++ {
 		utility.CheckErrorNonFatal(err)
 		start, err = dbBridge.GetLastTimestamp("Up")
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 3)
 	}
 	utility.CheckError(err)
 	end := time.Now().Truncate(monitorInterval)
@@ -131,14 +131,14 @@ func main() {
  	for i:=0; err != nil && i < retryZK; i++  {
  		utility.CheckErrorNonFatal(err)
  		zkBridge, err = zookeeper.New(zkServerAddresses, time.Second * sessionTimeout, aliveNodePath)
- 		time.Sleep(time.Second)
+ 		time.Sleep(time.Second * 3)
  	}
  	
  	err = zkBridge.RegisterMember(members[index], "info")
  	for err != nil {
  		utility.CheckErrorNonFatal(err)
  		err = zkBridge.RegisterMember(members[index], "info")
- 		time.Sleep(time.Second)
+ 		time.Sleep(time.Second * 3)
  	}
  	go checkMembersDead(zkBridge, members[next])
 
