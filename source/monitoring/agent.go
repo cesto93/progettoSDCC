@@ -66,10 +66,24 @@ import (
  	}
  }
 
- func checkMembersDead(zkBridge *zookeeper.ZookeeperBridge, id string) {
+ func restoreMembersDead(zkBridge *zookeeper.ZookeeperBridge, id string, myRestarter restarter.Restarter, 
+							restartInterval time.Duration) {
+	tryed := false 
  	for {
  		err := zkBridge.CheckMemberDead(id)
  		utility.CheckError(err)
+ 		if zkBridge.IsDead != false {
+			fmt.Println("This is is dead: " + id)
+			tryed, err = myRestarter.Restart(id)
+			utility.CheckErrorNonFatal(err)
+
+			if tryed {
+				fmt.Println("Tried to restart")
+				time.Sleep(restartInterval)
+				zkBridge.IsDead = false
+				tryed = false
+			}
+		}
  	}
  }
 
@@ -90,7 +104,9 @@ func recoverState(dbBridge *db.DbBridge, monitorBridge monitor.MonitorBridge, mo
 		start, err = dbBridge.GetLastTimestamp("Up")
 		time.Sleep(time.Second * 3)
 	}
-	utility.CheckError(err)
+	if err != nil {
+		fmt.Println("Cannot recover state")
+	}
 	end := time.Now().Truncate(monitorInterval)
 	saveMetrics(monitorBridge, dbBridge, *start, end)
 }
@@ -100,12 +116,12 @@ func main() {
 	var dbAddr string
 	var monitorBridge, monitorPrometheus monitor.MonitorBridge
 	var myRestarter restarter.Restarter
-	var aws, recovering bool
+	var aws, disableRecover bool
 	var index, next int
 	var start, end time.Time
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
-	flag.BoolVar(&aws, "recovering", false, "Enable the recovery state function")
+	flag.BoolVar(&aws, "disableRecover", false, "Disable the recovery state function")
 	flag.Parse()
 	
 	//wait interval
@@ -140,7 +156,7 @@ func main() {
  		err = zkBridge.RegisterMember(members[index], "info")
  		time.Sleep(time.Second * 3)
  	}
- 	go checkMembersDead(zkBridge, members[next])
+ 	go restoreMembersDead(zkBridge, members[next], myRestarter, restartInterval)
 
  	now := time.Now().Truncate(monitorInterval)
 	lastMeasure := now.Add(-monitorInterval)
@@ -162,27 +178,14 @@ func main() {
  		end = nextMeasure
  	}
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
- 	tryed := false
  	
  	fmt.Printf("Starting agent %s\n that observ %s\n", members[index], members[next])
- 	if recovering {
+ 	if disableRecover {
 		recoverState(dbBridge, monitorBridge, monitorInterval)
 	}
 
 	for {
 		now = time.Now()
-		if zkBridge.IsDead != false {
-			fmt.Println("This is is dead: " + members[next])
-			tryed, err = myRestarter.Restart(members[next])
-			utility.CheckErrorNonFatal(err)
-
-			if tryed {
-				fmt.Println("Tried to restart")
-				time.Sleep(restartInterval)
-				zkBridge.IsDead = false
-				tryed = false
-			}
-		}
 		if (now.After(nextMeasure)) {
 			saveMetrics(monitorBridge, dbBridge, start.UTC(), end.UTC())
 			saveMetrics(monitorPrometheus, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())

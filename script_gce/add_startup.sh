@@ -10,7 +10,7 @@ do
 gcloud compute instances add-metadata ${NAMES[$i]} --zone=$ZONE --metadata startup-script=\
 "
 sudo $HOME_DIR/zookeeper/bin/zkServer.sh start
-sleep 5
+sleep 8
 cd $HOME_DIR/go/src/progettoSDCC/bin
 ./agent
 "
