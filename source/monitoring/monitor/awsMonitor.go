@@ -142,7 +142,7 @@ func (monitor *AwsMonitor) GetMetrics(startTime time.Time, endTime time.Time) ([
 	for _, metricdata := range awsRes {
 		if len(metricdata.Values) != 0 { 
 			var data MetricData 
-			id,_ := strconv.Atoi((*metricdata.Id)[2:])
+			id,_ := strconv.Atoi((*metricdata.Id)[3:])
 			label := strings.Split(*metricdata.Label, " ")
 			data.TagName = "AWS/EC2"
 			data.TagValue = *monitor.metrics[id].Dimensions[0].Value
