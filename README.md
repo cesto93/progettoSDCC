@@ -1,6 +1,6 @@
 # ProgettoSDCC
-This project consist on a monitoring system that observe AWS EC2 instances and GCE compute engine instances using cloudwatch, stackdriver and prometheus, as well as application exposed metrics. The metrics measured can be changed in the specific configuration files and others application metrics can be exported as long as the are saved as a specific json file.  
-The system notice monitor agent fault (using zookeeper) and restart the faulty intances. Finally metrics are aggregated on a master instances that use influxdb, connect to that to gather all metrics.  
+This project consist on a monitoring system that observes AWS EC2 instances and GCE compute engine instances using cloudwatch, stackdriver and prometheus, as well as application exposed metrics. The metrics measured can be changed in the specific configuration files and others application metrics can be exported as long as they are saved as a specific json file.  
+The system notice monitor agent fault (using zookeeper) and restarts the faulty intances. Finally metrics are aggregated on a master instance that use influxdb and connect to that to gather all metrics.  
 We provide a test app that do the word count using aws EC2, S3 and GCE compute engine services.
 
 ## Local Dependency
@@ -28,20 +28,19 @@ For setup the instance to monitoring and wordcount application you need to:
 * launch script /script_aws/depency.sh to install depency
 
 ## GC setup
-In order to setup an instance running on google compute engine, you need to:
+In order to setup instances running on google compute engine, you need to:
 
-* launch the script setup_environment.sh in the folder progettoSDCC/script_gce specifying the instance name as an argument (es.: ./setup_environment instance-name-1), this will:
-	- connect to the specified instance, 
-	- install the necessary tools,
-	- open an ssh connection to it
-* for each instance you want to use as a monitor, after the ssh connection is established, launch the script set_instances_to_monitor.sh in the same folder of the previous point, specifying as arguments the names of the instance you want to monitor, including the monitor instance itself (es.: ./set_instances_to_monitor.sh instance-name-1 instance-name-2 ...), this will create some json files in the configuration folder:
+* launch the script setup_environment.sh in the folder progettoSDCC/script_gce, this will:
+	- connect to each instance, 
+	- install the necessary tools
+* launch the script configure_monitor.sh in the folder progettoSDCC/script_gce, create some json files in the configuration folder of each instance:
 	- a file containing the specified list (instances_names.json),
 	- a file to let google know the IDs of instances to monitor (instances_ids.json),
 	- a file to let prometheus know the IP's of instances to monitor (instances.json)
 
 N.B.: 
 -	by default only a subset of metrics are scraped by prometheus, gce and stackdriver; those metrics are specified in metrics_prometheus.json and metrics_gce.json, and can be expanded at will
--	only way for prometheus to connect to the monitored instances is via IP address, connecting through node exporter at port 9100, so ensure to start all instances you want to monitor and to allow both inbound and outbound traffic on the aforementioned port before running the script set_instances_to_monitor.sh (gce IPs are dynamically changed at each restart)
+-	ensure to oper ports specified in AWS SETUP on GCE instances too
 
 ## Monitoring
 
@@ -61,7 +60,7 @@ N.B.:
 * Set the grafana datasource on influxdb on http://ADDR:8086
 
 ### Usage
-After configuration you should restart all instances then monitoring is active
+After configuration you should restart all instances, then monitoring is active
 
 ## Application
 
@@ -73,15 +72,15 @@ To test the app in local or if you want to manually set the ip use this file dir
 
 ###Commands
 
-The client of the application use different flags for specifing different operations or differrent args
+The client of the application uses different flags to specify different operations and arguments
 
-* This are the commands for operation specification
-    * -load this command load the files specified in the AWS S3 bucket at specified names
-    * -delete this command delete the files specified by names on the AWS S3 bucket
-    * -list this command list the files on the bucket
-    * -count this command do the wordcount of the files in the bucket identified by given names
+* These are the commands for operations:
+	- load: this command loads the files specified in the AWS S3 bucket at specified names
+    - delete: this command deletes the files specified by names from the AWS S3 bucket
+    - list: this command lists the files in the bucket
+    - count: this command executes the wordcount of the files in the bucket identified by given names
 
-* This are the commands for arg specification:
-    * -names (USED with load/delete/count)specifies the names for the S3 file in the bucket to use/load/delete
-    * -paths (USED with load) specifies the paths for the local file to upload
-    * -serverAddr (USED with count) specifie the address of the server for the rpc requiest to wordcount operation
+* These are the commands for arguments specification:
+    - names: (USED with load/delete/count) specifies the names for the S3 files in the bucket to use/load/delete
+    - paths: (USED with load) specifies the paths for the local files to upload
+    - serverAddr: (USED with count) specifies the address of the server for the rpc request
