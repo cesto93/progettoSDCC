@@ -1,6 +1,7 @@
 package monitor
 
 import (
+        "strconv"
 	"io/ioutil"
         "fmt"
         "net/http"
@@ -105,7 +106,7 @@ func (monitor *PrometheusMonitor) GetMetrics(startTime time.Time, endTime time.T
                         r.Values = make([]interface{}, len(prom_resp.Data.Result[k].Value))
                         for j:=0; j<len(prom_resp.Data.Result[k].Value); j++{
                                 r.Timestamps[j] = time.Unix(int64(prom_resp.Data.Result[k].Value[j][0].(float64)), 0)
-                                r.Values[j] = prom_resp.Data.Result[k].Value[j][1].(float64)
+                                r.Values[j], _ = strconv.ParseFloat(prom_resp.Data.Result[k].Value[j][1].(string), 64)
                         }
                         resp.Body.Close()
                         result = append(result, r)
