@@ -24,7 +24,7 @@ ZK_SRV_IPS_J=$(echo ${ZK_SRV_IP_J[@]} | jq -s --arg port ":$ZK_CLIENT_PORT" ' ad
 #monitor_ids
 for ((i=0; i<${#MONITOR_NAMES[@]}; i++));
 do
-IDS[$i]=$(gcloud compute instances describe ${MONITOR_NAMES[i]} --zone "us-central1-a" --format "json" | jq -s ".[].id")
+IDS[$i]=$(gcloud compute instances describe ${MONITOR_NAMES[$i]} --zone "us-central1-a" --format "json" | jq -s ".[].id")
 done
 IDS_MONITOR_J=$(echo ${IDS[@]} | jq -s '[.[]]')
 
@@ -35,7 +35,7 @@ do
 	M=$(echo ${MONITORED_NAMES[@]})
 	gcloud compute scp --zone=$ZONE ../configuration/generated/gce_project_id.json  \
 	$USER@${MONITOR_NAMES[$i]}:$HOME_DIR/go/src/progettoSDCC/configuration/generated -q
-	gcloud compute ssh --zone=$ZONE ${MONITOR_NAMES[i]} --command \
+	gcloud compute ssh --zone=$ZONE ${MONITOR_NAMES[$i]} --command \
 "
 echo configuration of monitor
 cd ~/go/src/progettoSDCC
