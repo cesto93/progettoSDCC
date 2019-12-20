@@ -185,16 +185,14 @@ func main() {
 	}
 
 	for {
-		now = time.Now()
-		if (now.After(nextMeasure)) {
-			saveMetrics(monitorBridge, dbBridge, start.UTC(), end.UTC())
-			saveMetrics(monitorPrometheus, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
-			saveAppMetrics(AppmetricsJsonPath, dbBridge)
-			lastMeasure = lastMeasure.Add(monitorInterval)
-			nextMeasure = nextMeasure.Add(monitorInterval)
-			start = start.Add(monitorInterval)
-			end = end.Add(monitorInterval)
-		}
-		time.Sleep(restartInterval)
+		saveMetrics(monitorBridge, dbBridge, start.UTC(), end.UTC())
+		saveMetrics(monitorPrometheus, dbBridge, lastMeasure.UTC(), nextMeasure.UTC())
+		saveAppMetrics(AppmetricsJsonPath, dbBridge)
+		
+		lastMeasure = lastMeasure.Add(monitorInterval)
+		nextMeasure = nextMeasure.Add(monitorInterval)
+		start = start.Add(monitorInterval)
+		end = end.Add(monitorInterval)
+		time.Sleep(monitorInterval)
 	}
  }

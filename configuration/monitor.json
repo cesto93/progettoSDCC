@@ -42,6 +42,10 @@
     {
       "name": "worker-5",
       "monitored": ["worker-5"]
+    },
+    {
+      "name": "worker-6",
+      "monitored": ["worker-6"]
     }
   ]
 }
