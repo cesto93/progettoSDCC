@@ -39,11 +39,15 @@ import (
 
     AppmetricsJsonPath = "../log/app_metrics.json"
  )
+ 
+ var debug bool
 
  func saveMetrics(monitorBridge monitor.MonitorBridge, dbBridge *db.DbBridge, start time.Time, end time.Time) {
  	data, err := monitorBridge.GetMetrics(start, end)
  	utility.CheckError(err)
- 	printMetrics(data, start, end)
+ 	if debug {
+		printMetrics(data, start, end)
+	}
  	err = dbBridge.SaveMetrics(data)
  	for i:=0; err != nil && i < retryDB; i++  {
 		utility.CheckErrorNonFatal(err)
@@ -56,7 +60,9 @@ import (
  	metrics, err := appMetrics.ReadApplicationMetrics(path)
  	utility.CheckError(err)
  	if (metrics != nil) {
- 		printMetrics(metrics, metrics[0].Timestamps[0], metrics[0].Timestamps[0])
+		if debug {
+			printMetrics(metrics, metrics[0].Timestamps[0], metrics[0].Timestamps[0])
+		}
  		err = dbBridge.SaveMetrics(metrics)
  		for i:=0; err != nil && i < retryDB; i++  {
 			utility.CheckErrorNonFatal(err)
@@ -120,7 +126,8 @@ func main() {
 	var start, end time.Time
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
-	flag.BoolVar(&aws, "disableRecover", false, "Disable the recovery state function")
+	flag.BoolVar(&disableRecover, "disableRecover", false, "Disable the recovery state function")
+	flag.BoolVar(&debug, "disableRecover", false, "Disable the recovery state function")
 	flag.Parse()
 	
 	//wait interval
@@ -180,7 +187,7 @@ func main() {
  	monitorPrometheus = monitor.NewPrometheus(PrometheusMetricsJsonPath)
  	
  	fmt.Printf("Starting agent %s\n that observ %s\n", members[index], members[next])
- 	if disableRecover {
+ 	if !disableRecover {
 		recoverState(dbBridge, monitorBridge, monitorInterval)
 	}
 
