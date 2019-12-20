@@ -127,7 +127,7 @@ func main() {
 
 	flag.BoolVar(&aws, "aws", false, "Specify the aws monitor")
 	flag.BoolVar(&disableRecover, "disableRecover", false, "Disable the recovery state function")
-	flag.BoolVar(&debug, "disableRecover", false, "Disable the recovery state function")
+	flag.BoolVar(&debug, "debug", false, "Disable the debug print")
 	flag.Parse()
 	
 	//wait interval
