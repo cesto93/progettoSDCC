@@ -111,9 +111,13 @@ func recoverState(dbBridge *db.DbBridge, monitorBridge monitor.MonitorBridge, mo
 	}
 	if err != nil {
 		fmt.Println("Cannot recover state")
+		return
 	}
 	end := time.Now().Truncate(monitorInterval)
-	saveMetrics(monitorBridge, dbBridge, *start, end)
+	if end.Before(*start) {
+		fmt.Printf("Recovering data from %v to %v\n", start, end)
+		saveMetrics(monitorBridge, dbBridge, *start, end)
+	}
 }
 
 func main() {
