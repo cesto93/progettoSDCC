@@ -11,6 +11,8 @@ gcloud compute instances add-metadata ${NAMES[$i]} --zone=$ZONE --metadata start
 "
 sudo $HOME_DIR/zookeeper/bin/zkServer.sh start
 sleep 8
+cd $HOME_DIR/go/src/progettoSDCC/script_gce
+./get_instances_from_names.sh
 cd $HOME_DIR/go/src/progettoSDCC/bin
 ./agent
 "
